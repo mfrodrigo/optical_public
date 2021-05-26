@@ -60,7 +60,8 @@ def ssprop(u0, dt, dz, nz, alpha, betap, gamma=0, maxiter=4, tol=1e-5):
 
     for ii in range(0, len(betap)):
 
-        halfstep = halfstep - ((1j)**(ii-1))*betap[ii, 0]*(w**ii)/math.factorial(ii)
+        # halfstep = halfstep - ((1j)**(ii-1))*betap[ii, 0]*(w**ii)/math.factorial(ii)
+        halfstep = halfstep - 1j * betap[ii, 0] * (w ** ii) / math.factorial(ii)
 
     halfstep = e**(halfstep*dz/2)
 
@@ -73,7 +74,8 @@ def ssprop(u0, dt, dz, nz, alpha, betap, gamma=0, maxiter=4, tol=1e-5):
 
         for ii in range(0, maxiter):
 
-            uv = uhalf*e**(1j*gamma*(abs(u1)**2 + abs(u0)**2)*dz/2)
+            # uv = uhalf*e**(1j*gamma*(abs(u1)**2 + abs(u0)**2)*dz/2)
+            uv = uhalf * e ** (-1j * gamma * (abs(u1) ** 2 + abs(u0) ** 2) * dz / 2)
             uv = np.fft.fft(uv, axis=0)
             ufft = halfstep*uv
             uv = np.fft.ifft(ufft, axis=0)

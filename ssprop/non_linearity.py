@@ -31,7 +31,7 @@ dt = T / num_samplesperbit  # sampling time(ps) # time step (ps)
 t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * dt
 
 dz = 0.5  # distance stepsize (km)
-nz = 800
+nz = 40
 
 beta2 = -43  # beta2 (ps^2/km)
 betap = np.transpose(np.array([0, 0, beta2]).reshape(1, 3))  # dispersion polynomial
@@ -39,14 +39,14 @@ betap = np.transpose(np.array([0, 0, beta2]).reshape(1, 3))  # dispersion polyno
 t0 = 0
 C = 0
 m = 1
-P0 = 1
+P0 = 0.1
 
 ##
 n2 = 2.6*(10**-20)
 gamma = 2*math.pi*(10**24)*n2/(1550*76)
 
-gamma = 0.00
-alpha = 0.00
+gamma = 0.0
+alpha = 0.0
 # u0
 FWHM = 100
 u0 = np.zeros(shape=(len(t), 1), dtype=complex)
