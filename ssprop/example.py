@@ -22,16 +22,17 @@ import math
 import numpy as np
 from scipy import signal
 from ssprop import ssprop
+from half_power import return_half_power
 import matplotlib.pyplot as plt
 
 # dt
-T = 400  #  (ps) deve ser pelo 4x FWHM
-num_samplesperbit = 2 ** 9  # should be 2^n
+T = 1000  # (ps) deve ser pelo 4x FWHM
+num_samplesperbit = 2 ** 11  # should be 2^n
 dt = T / num_samplesperbit  # sampling time(ps) # time step (ps)
 t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * dt
 
 dz = 0.5  # distance stepsize (km)
-nz = 200
+nz = 120
 
 beta2 = -43  # beta2 (ps^2/km)
 betap = np.transpose(np.array([0, 0, beta2]).reshape(1, 3))  # dispersion polynomial
@@ -39,47 +40,33 @@ betap = np.transpose(np.array([0, 0, beta2]).reshape(1, 3))  # dispersion polyno
 t0 = 0
 C = 0
 m = 1
-P0 = 1
+P0 = 0.1
 
+##
+n2 = 2.6 * (10 ** -20)
+# gamma = 2*math.pi*(10**24)*n2/(1550*76)
+
+gamma = 0.01
+alpha = 0.0
 # u0
 FWHM = 100
-    # 2 * math.sqrt(math.log(2))
 u0 = np.zeros(shape=(len(t), 1), dtype=complex)
 u0[:, 0] = math.sqrt(P0) * 2 ** (-((1 + 1j * C) / 2) * (2 * (t - t0) / FWHM) ** (2 * m))
-# Output
 
-u1 = np.zeros(shape=(len(t), nz), dtype=complex)
-u1[:, 0] = u0[:, 0]
-
-for i in range(1, nz):
-    aux = u1[:, i - 1]
-    aux = aux.reshape(len(t), 1)
-    u1[:, i] = ssprop(aux, dt, dz, 1, 0, betap, 0)
+# output
+u1 = ssprop(u0, dt, dz, nz, alpha, betap, gamma)
 
 print('###########################################################')
-u_output = abs(u1[:, nz-1]) ** 2
-max_peak = np.amax(u_output)
-for i in range(u_output.shape[0]):
-    if u_output[i] >= max_peak/2:
-        aux_1 = i
-        break
-for j in range(aux_1, u_output.shape[0]):
-    if u_output[j] <= max_peak/2:
-        aux_2 = j
-        break
-
-delta_t = t[aux_2]-t[aux_1]
-print(delta_t, u_output[aux_1], u_output[aux_2])
+list_values = return_half_power(t, u1)
+print(list_values)
 print('###########################################################')
-print(u1)
-plt.figure()
-
-plt.plot(t, abs(u1[:, 0]) ** 2, label=f'$u_{0}$')
-plt.plot(t, abs(u1[:, nz-1]) ** 2, label=f'$u_{nz}$')
+fig = plt.figure()
+plt.plot(t, abs(u0[:, 0]) ** 2, label='Input')
+plt.plot(t, abs(u1[:, 0]) ** 2, label='Output')
 plt.title('Gaussian Pulse ')
 plt.xlabel(r'$(t-\beta_1z)/T_0$')
 plt.ylabel('|u1(z,t)|^2/P_0')
 plt.legend()
 plt.grid(True)
+fig.savefig('Plot canal: ' + str(nz * dz) + 'Km, alpha = ' + str(alpha) + '.png', dpi=fig.dpi)
 plt.show()
-

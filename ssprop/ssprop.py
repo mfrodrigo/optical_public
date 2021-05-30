@@ -95,4 +95,4 @@ def ssprop(u0, dt, dz, nz, alpha, betap, gamma=0, maxiter=4, tol=1e-5):
                 "Failed to converge to {} in {} iterations".format(tol, maxiter))
         u0 = u1
 
-    return list(u1)
+    return u1
