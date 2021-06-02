@@ -48,7 +48,7 @@ n2 = 2.6 * (10 ** -20)
 # gamma = 2*math.pi*(10**24)*n2/(1550*76)
 
 gamma = 0.01
-alpha = 0.0
+alpha = 0.04
 # u0
 FWHM = 100
 u0 = np.zeros(shape=(len(t), 1), dtype=complex)
