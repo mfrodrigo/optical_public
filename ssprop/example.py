@@ -41,14 +41,14 @@ betap = np.transpose(np.array([0, 0, beta2]).reshape(1, 3))  # dispersion polyno
 t0 = 0
 C = 0
 m = 1
-P0 = 0.1
+P0 = 1
 
 ##
 n2 = 2.6 * (10 ** -20)
 # gamma = 2*math.pi*(10**24)*n2/(1550*76)
 
 gamma = 0.01
-alpha = 0.04
+alpha = 0.
 # u0
 FWHM = 100
 u0 = np.zeros(shape=(len(t), 1), dtype=complex)
