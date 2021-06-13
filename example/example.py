@@ -1,4 +1,4 @@
-# test ssprop
+# test Channel
 
 # INPUT
 #
@@ -22,7 +22,7 @@ import math
 import numpy as np
 import pandas as pd
 from scipy import signal
-from ssprop import ssprop
+from Channel.channel import Channel
 from pulse.half_power import return_half_power
 import matplotlib.pyplot as plt
 
@@ -59,7 +59,7 @@ list_output = []
 list_delta = []
 for nz in nz_step:
     # output
-    u1 = ssprop(u0, dt, dz, nz, alpha, betap, gamma)
+    u1 = Channel.ssprop(u0, dt, dz, nz, alpha, betap, gamma)
 
     print('###########################################################')
     list_values = return_half_power(t, u1)
