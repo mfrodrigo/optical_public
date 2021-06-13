@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 from scipy import signal
 from ssprop import ssprop
-from half_power import return_half_power
+from pulse.half_power import return_half_power
 import matplotlib.pyplot as plt
 
 # dt
@@ -55,7 +55,7 @@ u0 = np.zeros(shape=(len(t), 1), dtype=complex)
 u0[:, 0] = math.sqrt(P0) * 2 ** (-((1 + 1j * C) / 2) * (2 * (t - t0) / FWHM) ** (2 * m))
 
 nz_step = range(40, 401, 40)
-list_output =[]
+list_output = []
 list_delta = []
 for nz in nz_step:
     # output
@@ -63,7 +63,7 @@ for nz in nz_step:
 
     print('###########################################################')
     list_values = return_half_power(t, u1)
-    print(nz*dz, list_values)
+    print(nz * dz, list_values)
     list_output.append(list_values[3])
     list_delta.append(list_values[2])
     print('###########################################################')
@@ -76,20 +76,29 @@ for nz in nz_step:
     plt.legend()
     plt.grid(True)
     fig.savefig('Plot canal: ' + str(nz * dz) + 'Km, alpha = ' + str(alpha) + '_beta_2_'
-                +str(beta2)+ '_gamma_'+str(gamma) + '.png', dpi=fig.dpi)
-    #plt.show()
+                + str(beta2) + '_gamma_' + str(gamma) + '.png', dpi=fig.dpi)
 
-fig = plt.figure()
-plt.plot(nz_step, np.array(list_output)/P0*100, label='Input')
-plt.plot(nz_step, list_delta, label='Output')
-plt.title('Gaussian Pulse ')
-plt.xlabel('Distância')
-plt.ylabel('Valores de saída')
-plt.legend()
-plt.grid(True)
-fig.savefig('Plot Valores de Saída: ' + 'beta_2_'+str(beta2)+'_alpha_'+str(alpha)+'_gamma_'+str(gamma) + '.png', dpi=fig.dpi)
+fig, ax1 = plt.subplots()
+color = 'red'
+ax1.set_xlabel('distance (km)')
+ax1.set_ylabel('Output Power', color=color)
+ax1.plot(np.array(nz_step) * dz, np.array(list_output) / P0 * 100, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+color = 'blue'
+ax2.set_ylabel('Delta', color=color)  # we already handled the x-label with ax1
+ax2.plot(np.array(nz_step) * dz, list_delta, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+fig.savefig(
+    'Plot Valores de Saída: ' + 'beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.png',
+    dpi=fig.dpi)
 
 data = pd.DataFrame({'Distância': nz_step,
                      'Potência de saída': list_output,
                      'Largura a meia altura': list_delta})
-data.to_csv('resultados_de_beta_2_'+str(beta2)+'_alpha_'+str(alpha)+'_gamma_'+str(gamma)+'.csv', decimal=",")
+data.to_csv('resultados_de_beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.csv',
+            decimal=",")
