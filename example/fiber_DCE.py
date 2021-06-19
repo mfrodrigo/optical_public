@@ -20,11 +20,10 @@
 
 import math
 import numpy as np
-import pandas as pd
-from scipy import signal
 from Channel.channel import Channel
 from pulse.half_power import return_half_power
-import matplotlib.pyplot as plt
+from output.plotter import Plotter
+from output.tables import Tables
 
 # dt
 T = 1000  # (ps) deve ser pelo 4x FWHM
@@ -42,60 +41,78 @@ u0 = np.zeros(shape=(len(t), 1), dtype=complex)
 u0[:, 0] = math.sqrt(P0) * 2 ** (-((1 + 1j * C) / 2) * (2 * (t - t0) / FWHM) ** (2 * m))
 dz = 0.5  # distance stepsize (km)
 
+wavelength = 1550  # nm
+speed_of_light = 299792.458  # nm/ps
+
 # Fiber 1
-beta2 = -43  # beta2 (ps^2/km)
+D = 17  # [ps/nm.km]
+beta2 = -(D * wavelength ** 2) / (math.pi * speed_of_light)  # beta2 (ps^2/km)
 betap = np.transpose(np.array([0, 0, beta2]).reshape(1, 3))  # dispersion polynomial
 gamma = 0.01
-alpha = 0.05
+alpha = 0.2/4.343
 
 # DCE Fiber
+D_DCE = -100  # [ps/nm.km]
+beta2_DCE = -(D_DCE * (wavelength ** 2)) / (math.pi * speed_of_light)  # beta2 (ps^2/km)
+betap_DCE = np.transpose(np.array([0, 0, beta2_DCE]).reshape(1, 3))  # dispersion polynomial
+gamma_DCE = 0.03
+alpha_DCE = 0.4/4.343
 
-
-nz_step = range(40, 401, 40)
+nz_step = [200]
 list_output_1 = []
 list_delta_1 = []
+list_output_2 = []
+list_delta_2 = []
+
 for nz in nz_step:
     # output
     u1 = Channel.ssprop(u0, dt, dz, nz, alpha, betap, gamma)
 
-    print('###########################################################')
     list_values = return_half_power(t, u1)
-    print(nz * dz, list_values)
     list_output_1.append(list_values[3])
     list_delta_1.append(list_values[2])
-    print('###########################################################')
-    fig = plt.figure()
-    plt.plot(t, abs(u0[:, 0]) ** 2, label='Input')
-    plt.plot(t, abs(u1[:, 0]) ** 2, label='Output')
-    plt.title('Gaussian Pulse ')
-    plt.xlabel(r'$(t-\beta_1z)/T_0$')
-    plt.ylabel('|u1(z,t)|^2/P_0')
-    plt.legend()
-    plt.grid(True)
-    fig.savefig('Plot canal: ' + str(nz * dz) + 'Km, alpha = ' + str(alpha) + '_beta_2_'
-                + str(beta2) + '_gamma_' + str(gamma) + '.png', dpi=fig.dpi)
 
-fig, ax1 = plt.subplots()
-color = 'red'
-ax1.set_xlabel('distance (km)')
-ax1.set_ylabel('Output Power', color=color)
-ax1.plot(np.array(nz_step) * dz, np.array(list_output_1) / P0 * 100, color=color)
-ax1.tick_params(axis='y', labelcolor=color)
+    title_graph_1 = 'Plot canal: ' + str(nz * dz) + 'Km, alpha = ' \
+                    + str(alpha) + '_beta_2_' + str(beta2) + '_gamma_' \
+                    + str(gamma) + '.png'
 
-ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    Plotter.plot_pulse_input_and_output(t, u0, u1, title_graph_1)
 
-color = 'blue'
-ax2.set_ylabel('Delta', color=color)  # we already handled the x-label with ax1
-ax2.plot(np.array(nz_step) * dz, list_delta_1, color=color)
-ax2.tick_params(axis='y', labelcolor=color)
+    nz_DCE = -int(nz * D / D_DCE)
+    u2 = Channel.ssprop(u1, dt, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
 
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
-fig.savefig(
-    'Plot Valores de Saída: ' + 'beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.png',
-    dpi=fig.dpi)
+    list_values = return_half_power(t, u2)
+    list_output_2.append(list_values[3])
+    list_delta_2.append(list_values[2])
 
-data = pd.DataFrame({'Distância': nz_step,
-                     'Potência de saída': list_output_1,
-                     'Largura a meia altura': list_delta_1})
-data.to_csv('resultados_de_beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.csv',
-            decimal=",")
+    title_graph_2 = 'Plot canal: ' + str(nz_DCE * dz) + 'Km, alpha = ' + str(alpha_DCE) + '_beta_2_' \
+                    + str(beta2_DCE) + '_gamma_' + str(gamma_DCE) + '.png'
+
+    Plotter.plot_pulse_input_and_output(t, u1, u2, title_graph_2)
+
+title_graph_1 = 'Plot Valores de Saída: ' + 'beta_2_' + str(beta2) \
+                + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.png'
+Plotter.plot_power_output_and_delta_output(np.array(nz_step) * dz,
+                                           np.array(list_output_1) / P0 * 100,
+                                           list_delta_1,
+                                           title_graph_1)
+
+title_graph_2 = 'Plot Valores de Saída: ' + 'beta_2_' + str(beta2_DCE) \
+                + '_alpha_' + str(alpha_DCE) + '_gamma_' + str(gamma_DCE) + '.png'
+Plotter.plot_power_output_and_delta_output(np.array(nz_step) * (-D / D_DCE) * dz,
+                                           np.array(list_output_2) / P0 * 100,
+                                           list_delta_2,
+                                           title_graph_2)
+
+title_table_1 = 'resultados_de_beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.csv'
+Tables.export_table_results(list(np.array(nz_step) * dz),
+                            list_output_1,
+                            list_delta_1,
+                            title_table_1)
+
+title_table_2 = 'resultados_de_beta_2_' + str(beta2_DCE) + '_alpha_' + str(alpha_DCE) + '_gamma_' + str(
+    gamma_DCE) + '.csv'
+Tables.export_table_results(list(np.array(nz_step) * (-D / D_DCE) * dz),
+                            list_output_2,
+                            list_delta_2,
+                            title_table_2)

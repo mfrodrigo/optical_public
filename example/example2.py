@@ -97,7 +97,7 @@ fig.savefig(
     'Plot Valores de Saída: ' + 'beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.png',
     dpi=fig.dpi)
 
-data = pd.DataFrame({'Distância': nz_step,
+data = pd.DataFrame({'Distância': list(np.array(nz_step)*dz),
                      'Potência de saída': list_output,
                      'Largura a meia altura': list_delta})
 data.to_csv('resultados_de_beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.csv',
