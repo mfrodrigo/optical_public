@@ -1,15 +1,12 @@
-155.2734375 1.166968588658236 sem gamma
-146.484375 1.2295103239913194 com gamma
+parte 1 --> código orignal do Binh (halfstep original e expoente negativo) 
+parte 2 -> halfstep alterado e expoente negativo 
+parte 3 --> halfstep original e expoente positivo 
+parte 4 --> código final (halfstep alterado e expoente positivo) 
 
-164.0625 1.111183867595639 com gamma
-240.234375 0.795904141621934 com gamma 0.01
+Parte 1 -- Observei que não houve compensação pela fibra DCE.
+Parte 2 --> Houve compesação apenas na ausência de atenuação ( alpha = 0). Sobre isto, como a fibra DCE possui o
+	        dobro de atenuação (0.4db/km), a atenuação está sobrepondo a compensação pelo GVD (beta2).
+	        Outrossim, a compensação foi maior que deveria ou seja, o sinal output foi maior que 1.
+parte 3 -->  Idem parte 2
+parte 4 --> Não houve compensação.
 
-110.3515625 0.8442799171612815 com expoente positivo
-93.75 0.9506822461532863 com expoente negativo
-
-102.5390625 0.09777503962204959 com gamma
-102.5390625 0.09740092089470605
-
--51.025390625 51.513671875 102.5390625 0.09740092089470605 0.04910680103240042 0.0484643063348803
--51.025390625 51.513671875 102.5390625 0.09727148113091148 0.049130831937967905 0.048489719064981084
--51.025390625, 51.513671875, 102.5390625, 0.09727148113091148, 0.049130831937967905, 0.048489719064981084
