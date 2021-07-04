@@ -1,4 +1,4 @@
-"""Channel Module"""
+"""channel Module"""
 import math
 import numpy as np
 from math import e
@@ -7,7 +7,7 @@ import warnings
 
 class Channel:
     """
-    Channel Class
+    channel Class
     """
 
     def __init__(self):
@@ -26,9 +26,9 @@ class Channel:
 
         USAGE
 
-        u1 = Channel(u0,dt,dz,nz,alpha,betap,gamma);
-        u1 = Channel(u0,dt,dz,nz,alpha,betap,gamma,maxiter);
-        u1 = Channel(u0,dt,dz,nz,alpha,betap,gamma,maxiter,tol);
+        u1 = channel(u0,dt,dz,nz,alpha,betap,gamma);
+        u1 = channel(u0,dt,dz,nz,alpha,betap,gamma,maxiter);
+        u1 = channel(u0,dt,dz,nz,alpha,betap,gamma,maxiter,tol);
 
         INPUT
 

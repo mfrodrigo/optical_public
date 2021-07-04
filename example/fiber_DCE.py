@@ -1,4 +1,4 @@
-# test Channel
+# test channel
 
 # INPUT
 #
@@ -20,7 +20,7 @@
 
 import math
 import numpy as np
-from Channel.channel import Channel
+from channel.channel import Channel
 from pulse.half_power import return_half_power
 from output.plotter import Plotter
 from output.tables import Tables
