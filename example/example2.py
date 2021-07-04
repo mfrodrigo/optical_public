@@ -1,4 +1,4 @@
-# test Channel
+# test channel
 
 # INPUT
 #
@@ -22,7 +22,7 @@ import math
 import numpy as np
 import pandas as pd
 from scipy import signal
-from Channel.channel import Channel
+from channel.channel import Channel
 from pulse.half_power import return_half_power
 import matplotlib.pyplot as plt
 
