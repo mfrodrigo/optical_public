@@ -52,6 +52,12 @@ class SemiconductorOpticalAmplifier:
     mhh = m0 * 0.46  # Effective mass of a heavy hole in the VB
     mlh = m0 * 0.056  # Effective mass of a light hole in the VB
 
+    # parameters used in nilsson function
+
+    mdh = (mhh ** 1.5 + mlh ** 1.5) ** (2 / 3)
+    nc = 2 * (me * kT / (2 * pi * hbar ** 2)) ** 1.5
+    nv = 2 * (mdh * kT / (2 * pi * hbar ** 2)) ** 1.5
+
     def __init__(self):
         pass
 
@@ -81,7 +87,7 @@ class SemiconductorOpticalAmplifier:
         else:
             raise NameError('Band must be "conduction" or "valence"')
 
-        return self.kT * (log(delta) + delta * (64 + 0.05524 * delta * (64 + sqrt(delta))) ** -0.25)
+        return self.kT * (np.log(delta) + delta * (64 + 0.05524 * delta * (64 + np.sqrt(delta))) ** -0.25)
 
     def gain_coefficient(self, carrier_density, Energy):
         """
