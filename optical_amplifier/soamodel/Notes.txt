@@ -1,0 +1,18 @@
+List of Matlab files
+
+Numerical routines for the paper 'Wideband Semiconductor Optical Amplifier Steady-State Numerical Model' by Michael J. Connelly, IEEE Journal
+Quantum Electron, vol. 37, no. 3, pp.439-447, 2001.
+
+Author: M. Connelly, University of Limerick, Ireland.
+
+(1) constants - universal and SOA constants (material and geometry)
+(2) simul_params  - numerical algorithm parameters
+(3) nilsson - approximations to quasi-Fermi levels for conduction and valence bands
+(4) SOA_op - SOA operating point simulation, gain, total noise and output spectrum for a single bias current. Multiple signals possible.
+(5) SOA_vsbias - SOA simulations versus bias current at a particular input signal power. One signal only.
+(6) SOA_vsPower - SOA simulations versus input power at a particular bias current. One signal only.
+
+Useful plotting routines
+
+(1) pqFermi  - plot quasi_Fermi levels versus carrier density
+(2) pgain_coeff - plot gain coefficient spectrum
