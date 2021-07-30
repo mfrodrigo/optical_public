@@ -35,7 +35,7 @@ class TestSOA:
                               (carrier_density, 'valence', -7.7117e-21)])
     def test_approximation_to_quasi_fermi_level(self, carrier_density, band, expected):
         """
-        tests the function that calculates the approximation_to_quasi_fermi_level (nilsson).
+        Tests the function that calculates the approximation_to_quasi_fermi_level (nilsson).
         Args:
             carrier_density: (ndarray) Initial guess for carrier density.
             band: (string) band specification (conduction or valence).
@@ -47,6 +47,8 @@ class TestSOA:
 
     @pytest.mark.parametrize("carrier_density", [carrier_density])
     def test_gain_coefficient(self, carrier_density):
+        """Tests the function that calculates the material gain coefficient and
+         additive spontaneous emission term"""
         material_gain_coefficient, additive_spontaneous_emission_term = \
             self.soa.gain_coefficient(carrier_density=carrier_density)
         assert 1 == 1

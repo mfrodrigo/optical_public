@@ -125,7 +125,7 @@ class SemiconductorOpticalAmplifier:
 
     def gain_coefficient(self, carrier_density):
         """
-        this function calculate the material gain coefficient
+        This function calculate the material gain coefficient
         and additive spontaneous emission term.
 
         Returns:
