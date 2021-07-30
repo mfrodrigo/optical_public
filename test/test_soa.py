@@ -1,5 +1,5 @@
 """
-this module test Semiconductor Optical Amplifier (SOA)
+This module test Semiconductor Optical Amplifier (SOA).
 """
 import numpy as np
 import pytest
@@ -32,7 +32,7 @@ class TestSOA:
 
     @pytest.mark.parametrize("carrier_density, band, expected",
                              [(carrier_density, 'conduction', 13.5808e-21),
-                              (carrier_density, 'valence', -7.7117e-21)])
+                              (carrier_density, 'valence', 7.7117e-21)])
     def test_approximation_to_quasi_fermi_level(self, carrier_density, band, expected):
         """
         Tests the function that calculates the approximation_to_quasi_fermi_level (nilsson).
@@ -45,10 +45,12 @@ class TestSOA:
                                                              band=band)
         assert pytest.approx(answer[0], abs=1e-24) == expected
 
-    @pytest.mark.parametrize("carrier_density", [carrier_density])
-    def test_gain_coefficient(self, carrier_density):
+    def test_gain_coefficient(self):
         """Tests the function that calculates the material gain coefficient and
          additive spontaneous emission term"""
+        carrier_density = np.ones(101) * 1.2e24
         material_gain_coefficient, additive_spontaneous_emission_term = \
             self.soa.gain_coefficient(carrier_density=carrier_density)
-        assert 1 == 1
+        assert pytest.approx([material_gain_coefficient[-1],
+                              additive_spontaneous_emission_term[-1]/1e14], abs=1e-1) \
+               == [-4.13213e+05, 1.2716]

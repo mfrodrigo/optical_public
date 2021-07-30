@@ -70,6 +70,12 @@ class SemiconductorOpticalAmplifier:
     nc = 2 * (me * kT / (2 * pi * hbar ** 2)) ** 1.5
     nv = 2 * (mdh * kT / (2 * pi * hbar ** 2)) ** 1.5
 
+    # parameters used in gain_coeff function
+
+    k1 = c ** 2 * (h ** 1.5) / (4 * sqrt(2) * (pi ** 1.5) * n1 ** 2)
+    k2 = (2 * me * mhh / (hbar * (me + mhh))) ** 1.5
+    k0 = k1 * k2
+
     def __init__(self, number_spatial_divisions, number_spectrum_slices, wavelength_0, wavelength_1):
         self.number_spatial_divisions = number_spatial_divisions
         self.number_spectrum_slices = number_spectrum_slices
@@ -89,7 +95,7 @@ class SemiconductorOpticalAmplifier:
         km = ceil(energy_spacing / self.delta_Em)
         upper_energy = lower_energy_limit + self.number_spectrum_slices * km * self.delta_Em
         self.delta_energy = (upper_energy - lower_energy_limit) / self.number_spectrum_slices
-        self.energy = np.arange(lower_energy_limit, upper_energy, self.delta_energy)
+        self.energy = np.arange(lower_energy_limit, upper_energy + self.delta_energy, self.delta_energy)
 
     def energy_gap(self, carrier_density):
         """
@@ -116,12 +122,12 @@ class SemiconductorOpticalAmplifier:
         """
         if band == "conduction":
             delta = carrier_density / self.nc
+            return self.kT * (np.log(delta) + delta * (64 + 0.05524 * delta * (64 + np.sqrt(delta))) ** -0.25)
         elif band == "valence":
             delta = carrier_density / self.nv
+            return -self.kT * (np.log(delta) + delta * (64 + 0.05524 * delta * (64 + np.sqrt(delta))) ** -0.25)
         else:
             raise NameError('Band must be "conduction" or "valence"')
-
-        return self.kT * (np.log(delta) + delta * (64 + 0.05524 * delta * (64 + np.sqrt(delta))) ** -0.25)
 
     def gain_coefficient(self, carrier_density):
         """
@@ -136,7 +142,7 @@ class SemiconductorOpticalAmplifier:
         energy_gap = self.energy_gap(carrier_density)
         energy_a = (self.energy - energy_gap) * \
                    self.mhh / (self.me + self.mhh)
-        energy_b = (self.energy - energy_gap) * \
+        energy_b = -(self.energy - energy_gap) * \
                    self.me / (self.me + self.mhh)
 
         energy_fermi_conduction = \
@@ -146,19 +152,19 @@ class SemiconductorOpticalAmplifier:
         energy_fermi_valence = self.approximation_to_quasi_fermi_level(carrier_density=carrier_density,
                                                                        band='valence')
 
-        fermi_dirac_conduction = (1 + np.exp(energy_a - energy_fermi_conduction) /
-                                  self.kT) ** -1
-        fermi_dirac_valence = (1 + np.exp(energy_b - energy_fermi_valence) /
-                               self.kT) ** -1
+        fermi_dirac_conduction = (1 + np.exp((energy_a - energy_fermi_conduction) /
+                                             self.kT)) ** -1
+        fermi_dirac_valence = (1 + np.exp((energy_b - energy_fermi_valence) /
+                                          self.kT)) ** -1
 
         aux = self.energy - energy_gap
         aux[aux <= 0] = 0
-        gain_coefficient = np.sqrt(aux) * fermi_dirac_conduction * (1 - fermi_dirac_valence) * \
-                           self.energy ** 2
-        absorption_coefficient = np.sqrt(aux) * (1 - fermi_dirac_conduction) * fermi_dirac_valence * \
-                                 self.energy ** 2
-        gain_coefficient = self.K0 * gain_coefficient / lafetime
-        absorption_coefficient = self.K0 * absorption_coefficient / lafetime
+        gain_coefficient = np.sqrt(aux) * fermi_dirac_conduction * (1 - fermi_dirac_valence) / \
+                           (self.energy ** 2)
+        absorption_coefficient = np.sqrt(aux) * (1 - fermi_dirac_conduction) * fermi_dirac_valence / \
+                                 (self.energy ** 2)
+        gain_coefficient = self.k0 * gain_coefficient / lafetime
+        absorption_coefficient = self.k0 * absorption_coefficient / lafetime
         material_gain_coefficient = gain_coefficient - absorption_coefficient
         additive_spontaneous_emission_term = self.confine * gain_coefficient * self.delta_energy / self.h
 
