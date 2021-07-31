@@ -76,14 +76,30 @@ class SemiconductorOpticalAmplifier:
     k2 = (2 * me * mhh / (hbar * (me + mhh))) ** 1.5
     k0 = k1 * k2
 
-    def __init__(self, number_spatial_divisions, number_spectrum_slices, wavelength_0, wavelength_1):
+    def __init__(self, Pin_dbm, wavelength_s,
+                 number_spatial_divisions, number_spectrum_slices, wavelength_0, wavelength_1):
+        self.Pin_dbm = Pin_dbm
+        self.wavelength_s = wavelength_s
         self.number_spatial_divisions = number_spatial_divisions
         self.number_spectrum_slices = number_spectrum_slices
         self.wavelength_0 = wavelength_0 * 1e-9
         self.wavelength_1 = wavelength_1 * 1e-9
+        self.Pin = None
+        self.energy_signal = None
+        self.signal_propagation_coefficient = None
         self.energy = None
         self.delta_energy = None
+        self.calc_input_parameters()
         self.calc_delta_energy_and_energy()
+
+    def calc_input_parameters(self):
+        """
+        """
+        self.Pin = 1e-3*10 **(self.Pin_dbm/10)
+        self.wavelength_s = self.wavelength_s*1e-9
+        self.energy_signal = self.h*self.c/self.wavelength_s
+        self.signal_propagation_coefficient = 2*pi*self.neq*self.energy_signal/\
+                                              (self.h*self.c)
 
     def calc_delta_energy_and_energy(self):
         """
