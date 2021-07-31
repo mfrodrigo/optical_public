@@ -78,13 +78,15 @@ class SemiconductorOpticalAmplifier:
 
     def __init__(self, Pin_dbm, wavelength_s,
                  number_spatial_divisions, number_spectrum_slices,
-                 wavelength_0, wavelength_1, tolerance):
+                 wavelength_0, wavelength_1,
+                 bias_current=100e-3, tolerance=0.1):
         self.Pin_dbm = Pin_dbm
         self.wavelength_s = wavelength_s
         self.number_spatial_divisions = number_spatial_divisions
         self.number_spectrum_slices = number_spectrum_slices
         self.wavelength_0 = wavelength_0 * 1e-9
         self.wavelength_1 = wavelength_1 * 1e-9
+        self.bias_current = bias_current
         self.tolerance = tolerance
         self.Pin = None
         self.energy_signal = None
@@ -120,9 +122,9 @@ class SemiconductorOpticalAmplifier:
     def calc_simulation_parameters(self):
         """
         """
-        dz = self.L/self.number_spectrum_slices
-        z = np.arange(dz/2, self.L+dz/2, dz)
-        z1 = np.arange(0, self.L+dz, dz)
+        dz = self.L / self.number_spectrum_slices
+        z = np.arange(dz / 2, self.L + dz / 2, dz)
+        z1 = np.arange(0, self.L + dz, dz)
 
     def energy_gap(self, carrier_density):
         """
