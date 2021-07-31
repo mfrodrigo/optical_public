@@ -120,7 +120,9 @@ class SemiconductorOpticalAmplifier:
     def calc_simulation_parameters(self):
         """
         """
-
+        dz = self.L/self.number_spectrum_slices
+        z = np.arange(dz/2, self.L+dz/2, dz)
+        z1 = np.arange(0, self.L+dz, dz)
 
     def energy_gap(self, carrier_density):
         """
@@ -194,3 +196,7 @@ class SemiconductorOpticalAmplifier:
         additive_spontaneous_emission_term = self.confine * gain_coefficient * self.delta_energy / self.h
 
         return material_gain_coefficient, additive_spontaneous_emission_term
+
+    def run_simulation_soa(self):
+        """"""
+        pass
