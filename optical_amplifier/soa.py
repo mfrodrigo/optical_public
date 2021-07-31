@@ -77,13 +77,15 @@ class SemiconductorOpticalAmplifier:
     k0 = k1 * k2
 
     def __init__(self, Pin_dbm, wavelength_s,
-                 number_spatial_divisions, number_spectrum_slices, wavelength_0, wavelength_1):
+                 number_spatial_divisions, number_spectrum_slices,
+                 wavelength_0, wavelength_1, tolerance):
         self.Pin_dbm = Pin_dbm
         self.wavelength_s = wavelength_s
         self.number_spatial_divisions = number_spatial_divisions
         self.number_spectrum_slices = number_spectrum_slices
         self.wavelength_0 = wavelength_0 * 1e-9
         self.wavelength_1 = wavelength_1 * 1e-9
+        self.tolerance = tolerance
         self.Pin = None
         self.energy_signal = None
         self.signal_propagation_coefficient = None
@@ -94,12 +96,14 @@ class SemiconductorOpticalAmplifier:
 
     def calc_input_parameters(self):
         """
+        This function models the input parameters for the simulator.
+        Also, it calculates the propagation coefficient and the energy of the signal.
         """
-        self.Pin = 1e-3*10 **(self.Pin_dbm/10)
-        self.wavelength_s = self.wavelength_s*1e-9
-        self.energy_signal = self.h*self.c/self.wavelength_s
-        self.signal_propagation_coefficient = 2*pi*self.neq*self.energy_signal/\
-                                              (self.h*self.c)
+        self.Pin = 1e-3 * 10 ** (self.Pin_dbm / 10)
+        self.wavelength_s = self.wavelength_s * 1e-9
+        self.energy_signal = self.h * self.c / self.wavelength_s
+        self.signal_propagation_coefficient = 2 * pi * self.neq * self.energy_signal / \
+                                              (self.h * self.c)
 
     def calc_delta_energy_and_energy(self):
         """
@@ -112,6 +116,11 @@ class SemiconductorOpticalAmplifier:
         upper_energy = lower_energy_limit + self.number_spectrum_slices * km * self.delta_Em
         self.delta_energy = (upper_energy - lower_energy_limit) / self.number_spectrum_slices
         self.energy = np.arange(lower_energy_limit, upper_energy + self.delta_energy, self.delta_energy)
+
+    def calc_simulation_parameters(self):
+        """
+        """
+
 
     def energy_gap(self, carrier_density):
         """

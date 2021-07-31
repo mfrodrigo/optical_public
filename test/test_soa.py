@@ -13,10 +13,13 @@ class TestSOA:
 
     lambda0 = 1300  # start wavelength for gain coefficient and ASE spectrum (nm)
     lambda1 = 1650  # end wavelength for gain coefficient and ASE spectrum (nm)
-    soa = SemiconductorOpticalAmplifier(number_spatial_divisions=100,
-                                        number_spectrum_slices=100,
-                                        wavelength_0=lambda0,
-                                        wavelength_1=lambda1)
+    soa = SemiconductorOpticalAmplifier(
+        Pin_dbm=0,
+        wavelength_s=1550,
+        number_spatial_divisions=100,
+        number_spectrum_slices=100,
+        wavelength_0=lambda0,
+        wavelength_1=lambda1)
     carrier_density = np.ones(100) * 1.2e24
 
     @pytest.mark.parametrize('carrier_density', [carrier_density])
@@ -52,5 +55,5 @@ class TestSOA:
         material_gain_coefficient, additive_spontaneous_emission_term = \
             self.soa.gain_coefficient(carrier_density=carrier_density)
         assert pytest.approx([material_gain_coefficient[-1],
-                              additive_spontaneous_emission_term[-1]/1e14], abs=1e-1) \
+                              additive_spontaneous_emission_term[-1] / 1e14], abs=1e-1) \
                == [-4.13213e+05, 1.2716]
