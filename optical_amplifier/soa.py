@@ -3,7 +3,6 @@
 """
 import numpy as np
 from math import sqrt, exp, pi, ceil
-from mpmath import sech
 
 
 class SemiconductorOpticalAmplifier:
@@ -93,8 +92,12 @@ class SemiconductorOpticalAmplifier:
         self.signal_propagation_coefficient = None
         self.energy = None
         self.delta_energy = None
+        self.dz = None
+        self.z = None
+        self.z1 = None
         self.calc_input_parameters()
         self.calc_delta_energy_and_energy()
+        self.calc_simulation_parameters()
 
     def calc_input_parameters(self):
         """
@@ -117,14 +120,15 @@ class SemiconductorOpticalAmplifier:
         km = ceil(energy_spacing / self.delta_Em)
         upper_energy = lower_energy_limit + self.number_spectrum_slices * km * self.delta_Em
         self.delta_energy = (upper_energy - lower_energy_limit) / self.number_spectrum_slices
-        self.energy = np.arange(lower_energy_limit, upper_energy + self.delta_energy, self.delta_energy)
+        self.energy = np.arange(lower_energy_limit, upper_energy +
+                                self.delta_energy, self.delta_energy)
 
     def calc_simulation_parameters(self):
         """
         """
-        dz = self.L / self.number_spectrum_slices
-        z = np.arange(dz / 2, self.L + dz / 2, dz)
-        z1 = np.arange(0, self.L + dz, dz)
+        self.dz = self.L / self.number_spectrum_slices
+        self.z = np.arange(self.dz / 2, self.L + self.dz / 2, self.dz)
+        self.z1 = np.arange(0, self.L + self.dz, self.dz)
 
     def energy_gap(self, carrier_density):
         """
@@ -158,7 +162,7 @@ class SemiconductorOpticalAmplifier:
         else:
             raise NameError('Band must be "conduction" or "valence"')
 
-    def gain_coefficient(self, carrier_density):
+    def gain_coefficient(self, carrier_density, energy):
         """
         This function calculate the material gain coefficient
         and additive spontaneous emission term.
@@ -169,9 +173,9 @@ class SemiconductorOpticalAmplifier:
         """
         lafetime = (self.Arad + self.Brad * carrier_density) ** -1
         energy_gap = self.energy_gap(carrier_density)
-        energy_a = (self.energy - energy_gap) * \
+        energy_a = (energy - energy_gap) * \
                    self.mhh / (self.me + self.mhh)
-        energy_b = -(self.energy - energy_gap) * \
+        energy_b = -(energy - energy_gap) * \
                    self.me / (self.me + self.mhh)
 
         energy_fermi_conduction = \
@@ -186,19 +190,58 @@ class SemiconductorOpticalAmplifier:
         fermi_dirac_valence = (1 + np.exp((energy_b - energy_fermi_valence) /
                                           self.kT)) ** -1
 
-        aux = self.energy - energy_gap
+        aux = energy - energy_gap
         aux[aux <= 0] = 0
-        gain_coefficient = np.sqrt(aux) * fermi_dirac_conduction * (1 - fermi_dirac_valence) / \
-                           (self.energy ** 2)
-        absorption_coefficient = np.sqrt(aux) * (1 - fermi_dirac_conduction) * fermi_dirac_valence / \
-                                 (self.energy ** 2)
+        gain_coefficient = np.sqrt(aux) * fermi_dirac_conduction * \
+                           (1 - fermi_dirac_valence) / (energy ** 2)
+        absorption_coefficient = np.sqrt(aux) * (1 - fermi_dirac_conduction) * \
+                                 fermi_dirac_valence / (energy ** 2)
         gain_coefficient = self.k0 * gain_coefficient / lafetime
         absorption_coefficient = self.k0 * absorption_coefficient / lafetime
         material_gain_coefficient = gain_coefficient - absorption_coefficient
-        additive_spontaneous_emission_term = self.confine * gain_coefficient * self.delta_energy / self.h
+        additive_spontaneous_emission_term = self.confine * \
+                                             gain_coefficient * self.delta_energy / self.h
 
         return material_gain_coefficient, additive_spontaneous_emission_term
 
+    def calc_alpha(self, carrier_density):
+        """
+        This function calculates the signal's attenuation coefficient
+        and the attenuation coefficient.
+        These values will be useful in the run_simulation function.
+        Args:
+            carrier_density: (ndarray) Carrier density.
+
+        Returns:
+            signal_attenuation_coefficient: (ndarray) Signal attenuation coefficient
+                                                      with (number_spectrum_divisions) dimension.
+            attenuation_coefficient: (ndarray) Attenuation coefficient with
+                                               (number_spatial_divisionsXnumber_spectrum_slices +1) dimension.
+        """
+        signal_attenuation_coefficient = self.K0 + \
+                                         self.confine * self.K1 * carrier_density / 1e24
+        attenuation_coefficient = np.repeat(
+            signal_attenuation_coefficient,
+            self.number_spectrum_slices + 1).reshape((signal_attenuation_coefficient.shape[0],
+                                                      self.number_spectrum_slices + 1))
+
+        return signal_attenuation_coefficient, attenuation_coefficient
+
     def run_simulation_soa(self):
         """"""
-        pass
+        carrier_density = np.ones(self.number_spatial_divisions + 1) * 1.2e24
+        tolerance = 9999
+        while tolerance > self.tolerance:
+            alpha_s, alpha = self.calc_alpha(carrier_density)
+            material_gain_coefficient_signal, _ = self.gain_coefficient(
+                carrier_density=carrier_density,
+                energy=self.energy_signal)
+            material_gain_coefficient_signal = material_gain_coefficient_signal[0:self.number_spatial_divisions]
+            material_gain_coefficient_ASE, additive_spontaneous_emission_term_ASE = \
+                self.gain_coefficient(carrier_density=carrier_density,
+                                      energy=self.energy)
+            material_gain_coefficient_ASE = \
+                np.repeat(material_gain_coefficient_ASE.reshape((1,
+                                                                 material_gain_coefficient_ASE.shape[0])),
+                          self.number_spatial_divisions, axis=0)
+            tolerance = 0.01

@@ -53,7 +53,17 @@ class TestSOA:
          additive spontaneous emission term"""
         carrier_density = np.ones(101) * 1.2e24
         material_gain_coefficient, additive_spontaneous_emission_term = \
-            self.soa.gain_coefficient(carrier_density=carrier_density)
+            self.soa.gain_coefficient(carrier_density=carrier_density,
+                                      energy=self.soa.energy)
         assert pytest.approx([material_gain_coefficient[-1],
                               additive_spontaneous_emission_term[-1] / 1e14], abs=1e-1) \
                == [-4.13213e+05, 1.2716]
+
+    @pytest.mark.parametrize('carrier_density', [carrier_density])
+    def test_calc_alpha(self, carrier_density):
+        """Tests calc_alpha function."""
+        alpha_s, alpha = self.soa.calc_alpha(carrier_density=carrier_density)
+        assert [alpha_s[99], alpha[99, 100]] == [10250, 10250]
+
+    def test_run_simulation_soa(self):
+        self.soa.run_simulation_soa()
