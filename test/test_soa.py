@@ -67,7 +67,8 @@ class TestSOA:
         assert [alpha_s[99], alpha[99, 100]] == [10250, 10250]
 
     @pytest.mark.parametrize('carrier_density', [carrier_density])
-    def test_solve_travelling_wave_equations_ASE(self, carrier_density):
+    def test_solve_travelling_wave_equations_signal(self, carrier_density):
+        """Tests the solution of the amplitude equation for the input signal."""
         alpha_s, _ = self.soa.calc_alpha(carrier_density=carrier_density)
         number_division = self.soa.number_spatial_divisions
         forward_signal_amplitude = np.zeros(number_division + 1, dtype=np.complex128)
@@ -85,8 +86,33 @@ class TestSOA:
             material_gain_coefficient_signal, alpha_s
         )
 
-        assert pytest.approx([forward_signal_amplitude[99], backward_signal_amplitude[10]], abs=1)\
+        assert pytest.approx([forward_signal_amplitude[99], backward_signal_amplitude[10]], abs=1) \
                == [-1.3834e+04 - 2.2584e+04j, 0]
 
-    def test_run_simulation_soa(self):
-        self.soa.run_simulation_soa()
+    @pytest.mark.parametrize('carrier_density', [carrier_density])
+    def test_solve_travelling_wave_equations_ASE(self, carrier_density):
+        """Tests the solution of the amplitude equation for the singular polarization."""
+        _, alpha = self.soa.calc_alpha(carrier_density=carrier_density)
+        number_division = self.soa.number_spatial_divisions
+        forward_ASE_amplitude = np.zeros((number_division + 1,
+                                          number_division + 1))
+        backward_ASE_amplitude = np.zeros((number_division + 1,
+                                           number_division + 1))
+        forward_ASE_amplitude[0] = self.soa.R1 * backward_ASE_amplitude[0]
+        backward_ASE_amplitude[-1] = self.soa.R2 * forward_ASE_amplitude[-1]
+        material_gain_coefficient_ASE, additive_spontaneous_emission_term_ASE = \
+            self.soa.gain_coefficient(carrier_density=carrier_density,
+                                      energy=self.soa.energy)
+        material_gain_coefficient_ASE = \
+            np.repeat(material_gain_coefficient_ASE.reshape((1,
+                                                             material_gain_coefficient_ASE.shape[0])),
+                      self.number_spatial_divisions, axis=0)
+        forward_ASE_amplitude, backward_ASE_amplitude = self.soa.test_solve_travelling_wave_equations_ASE(
+            forward_ASE_amplitude, backward_ASE_amplitude, material_gain_coefficient_ASE,
+            additive_spontaneous_emission_term_ASE, alpha
+        )
+
+        assert 1 == 1
+
+    # def test_run_simulation_soa(self):
+    #     self.soa.run_simulation_soa()

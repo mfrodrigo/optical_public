@@ -229,15 +229,26 @@ class SemiconductorOpticalAmplifier:
 
     def solve_travelling_wave_equations_signal(self, forward_signal_amplitude, backward_signal_amplitude,
                                                material_gain_coefficient_signal, alpha_s):
+        """
 
+        Args:
+            forward_signal_amplitude: (ndarray)
+            backward_signal_amplitude: (ndarray)
+            material_gain_coefficient_signal: (ndarray)
+            alpha_s: (ndarray)
+
+        Returns:
+            forward_signal_amplitude: (ndarray)
+            backward_signal_amplitude: (ndarray)
+        """
         j = 1
         coefficient = np.exp(
             (-1j * self.signal_propagation_coefficient + 0.5 * (
                     self.confine * material_gain_coefficient_signal - alpha_s)
              ) * self.dz)
-        for i in range(self.number_spatial_divisions - 1, -1, -1):
+        for i in range(self.number_spatial_divisions - 2, -1, -1):
             forward_signal_amplitude[j] = forward_signal_amplitude[j - 1] * coefficient[j - 1]
-            backward_signal_amplitude[i] = backward_signal_amplitude[i] * coefficient[i]
+            backward_signal_amplitude[i] = backward_signal_amplitude[i+1] * coefficient[i+1]
             j += 1
 
         return forward_signal_amplitude, backward_signal_amplitude
@@ -257,7 +268,17 @@ class SemiconductorOpticalAmplifier:
         Returns:
 
         """
-        pass
+        j = 1
+        exp_product = np.exp((self.confine * material_gain_coefficient_ASE - alpha) * self.dz)
+        coefficient = exp_product + \
+                      additive_spontaneous_emission_term_ASE * (exp_product - 1) / \
+                      (self.confine * material_gain_coefficient_ASE - alpha)
+
+        for i in range(self.number_spatial_divisions - 1, -1, -1):
+            forward_ASE_amplitude[j] = forward_ASE_amplitude[j-1]*coefficient[j-1]
+            backward_ASE_amplitude[i] = backward_ASE_amplitude[i+1]*coefficient[i+1]
+
+        return forward_ASE_amplitude, backward_ASE_amplitude
 
     def run_simulation_soa(self):
         """"""
@@ -265,10 +286,8 @@ class SemiconductorOpticalAmplifier:
         for i in range(self.Pin.shape[0]):
             weighting_factor = np.ones(self.number_spatial_divisions) * 0.1
             carrier_density = np.ones(self.number_spatial_divisions + 1) * 1.2e24
-            forward_signal_amplitude = np.zeros((self.number_spatial_divisions + 1,
-                                                 self.number_spatial_divisions + 1))
-            backward_signal_amplitude = np.zeros((self.number_spatial_divisions + 1,
-                                                  self.number_spatial_divisions + 1))
+            forward_signal_amplitude = np.zeros(self.number_spatial_divisions + 1, dtype=np.complex128)
+            backward_signal_amplitude = np.zeros(self.number_spatial_divisions + 1, dtype=np.complex128)
             forward_ASE_amplitude = np.zeros((self.number_spatial_divisions + 1,
                                               self.number_spatial_divisions + 1))
             backward_ASE_amplitude = np.zeros((self.number_spatial_divisions + 1,
