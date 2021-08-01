@@ -22,6 +22,7 @@ class TestSOA:
         wavelength_0=lambda0,
         wavelength_1=lambda1)
     carrier_density = np.ones(100) * 1.2e24
+    carrier_density_1 = np.ones(101) * 1.2e24
 
     @pytest.mark.parametrize('carrier_density', [carrier_density])
     def test_energy_gap(self, carrier_density):
@@ -89,7 +90,7 @@ class TestSOA:
         assert pytest.approx([forward_signal_amplitude[99], backward_signal_amplitude[10]], abs=1) \
                == [-1.3834e+04 - 2.2584e+04j, 0]
 
-    @pytest.mark.parametrize('carrier_density', [carrier_density])
+    @pytest.mark.parametrize('carrier_density', [carrier_density_1])
     def test_solve_travelling_wave_equations_ASE(self, carrier_density):
         """Tests the solution of the amplitude equation for the singular polarization."""
         _, alpha = self.soa.calc_alpha(carrier_density=carrier_density)
@@ -106,13 +107,13 @@ class TestSOA:
         material_gain_coefficient_ASE = \
             np.repeat(material_gain_coefficient_ASE.reshape((1,
                                                              material_gain_coefficient_ASE.shape[0])),
-                      self.number_spatial_divisions, axis=0)
-        forward_ASE_amplitude, backward_ASE_amplitude = self.soa.test_solve_travelling_wave_equations_ASE(
+                      number_division+1, axis=0)
+        forward_ASE_amplitude, backward_ASE_amplitude = self.soa.solve_travelling_wave_equations_ASE(
             forward_ASE_amplitude, backward_ASE_amplitude, material_gain_coefficient_ASE,
             additive_spontaneous_emission_term_ASE, alpha
         )
 
-        assert 1 == 1
+        assert pytest.approx([forward_ASE_amplitude[10, 100]/1e8, backward_ASE_amplitude[99, 100]/1e8], abs=1e-2) == [6.48, 4.84]
 
-    # def test_run_simulation_soa(self):
-    #     self.soa.run_simulation_soa()
+    def test_run_simulation_soa(self):
+        self.soa.run_simulation_soa()
