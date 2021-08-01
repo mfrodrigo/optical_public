@@ -238,9 +238,26 @@ class SemiconductorOpticalAmplifier:
         for i in range(self.number_spatial_divisions - 1, -1, -1):
             forward_signal_amplitude[j] = forward_signal_amplitude[j - 1] * coefficient[j - 1]
             backward_signal_amplitude[i] = backward_signal_amplitude[i] * coefficient[i]
-            j +=1
+            j += 1
 
         return forward_signal_amplitude, backward_signal_amplitude
+
+    def solve_travelling_wave_equations_ASE(self, forward_ASE_amplitude, backward_ASE_amplitude,
+                                            material_gain_coefficient_ASE,
+                                            additive_spontaneous_emission_term_ASE, alpha):
+        """
+
+        Args:
+            forward_ASE_amplitude: (ndarray)
+            backward_ASE_amplitude: (ndarray)
+            material_gain_coefficient_ASE: (ndarray)
+            additive_spontaneous_emission_term_ASE: (ndarray)
+            alpha: (ndarray)
+
+        Returns:
+
+        """
+        pass
 
     def run_simulation_soa(self):
         """"""
@@ -249,13 +266,13 @@ class SemiconductorOpticalAmplifier:
             weighting_factor = np.ones(self.number_spatial_divisions) * 0.1
             carrier_density = np.ones(self.number_spatial_divisions + 1) * 1.2e24
             forward_signal_amplitude = np.zeros((self.number_spatial_divisions + 1,
-                                                 self.number_spatial_divisions+1))
+                                                 self.number_spatial_divisions + 1))
             backward_signal_amplitude = np.zeros((self.number_spatial_divisions + 1,
-                                                  self.number_spatial_divisions+1))
+                                                  self.number_spatial_divisions + 1))
             forward_ASE_amplitude = np.zeros((self.number_spatial_divisions + 1,
-                                                 self.number_spatial_divisions+1))
+                                              self.number_spatial_divisions + 1))
             backward_ASE_amplitude = np.zeros((self.number_spatial_divisions + 1,
-                                                 self.number_spatial_divisions+1))
+                                               self.number_spatial_divisions + 1))
 
             tolerance = 999
             while tolerance > self.tolerance:
