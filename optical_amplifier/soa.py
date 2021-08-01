@@ -227,21 +227,63 @@ class SemiconductorOpticalAmplifier:
 
         return signal_attenuation_coefficient, attenuation_coefficient
 
+    def solve_travelling_wave_equations_signal(self, forward_signal_amplitude, backward_signal_amplitude,
+                                               material_gain_coefficient_signal, alpha_s):
+
+        j = 1
+        coefficient = np.exp(
+            (-1j * self.signal_propagation_coefficient + 0.5 * (
+                    self.confine * material_gain_coefficient_signal - alpha_s)
+             ) * self.dz)
+        for i in range(self.number_spatial_divisions - 1, -1, -1):
+            forward_signal_amplitude[j] = forward_signal_amplitude[j - 1] * coefficient[j - 1]
+            backward_signal_amplitude[i] = backward_signal_amplitude[i] * coefficient[i]
+            j +=1
+
+        return forward_signal_amplitude, backward_signal_amplitude
+
     def run_simulation_soa(self):
         """"""
-        carrier_density = np.ones(self.number_spatial_divisions + 1) * 1.2e24
-        tolerance = 9999
-        while tolerance > self.tolerance:
-            alpha_s, alpha = self.calc_alpha(carrier_density)
-            material_gain_coefficient_signal, _ = self.gain_coefficient(
-                carrier_density=carrier_density,
-                energy=self.energy_signal)
-            material_gain_coefficient_signal = material_gain_coefficient_signal[0:self.number_spatial_divisions]
-            material_gain_coefficient_ASE, additive_spontaneous_emission_term_ASE = \
-                self.gain_coefficient(carrier_density=carrier_density,
-                                      energy=self.energy)
-            material_gain_coefficient_ASE = \
-                np.repeat(material_gain_coefficient_ASE.reshape((1,
-                                                                 material_gain_coefficient_ASE.shape[0])),
-                          self.number_spatial_divisions, axis=0)
-            tolerance = 0.01
+        input_signal_amplitude = np.sqrt(self.Pin) / sqrt(self.energy_signal)
+        for i in range(self.Pin.shape[0]):
+            weighting_factor = np.ones(self.number_spatial_divisions) * 0.1
+            carrier_density = np.ones(self.number_spatial_divisions + 1) * 1.2e24
+            forward_signal_amplitude = np.zeros((self.number_spatial_divisions + 1,
+                                                 self.number_spatial_divisions+1))
+            backward_signal_amplitude = np.zeros((self.number_spatial_divisions + 1,
+                                                  self.number_spatial_divisions+1))
+            forward_ASE_amplitude = np.zeros((self.number_spatial_divisions + 1,
+                                                 self.number_spatial_divisions+1))
+            backward_ASE_amplitude = np.zeros((self.number_spatial_divisions + 1,
+                                                 self.number_spatial_divisions+1))
+
+            tolerance = 999
+            while tolerance > self.tolerance:
+                forward_ASE_old = forward_ASE_amplitude
+                backward_ASE_old = backward_ASE_amplitude
+
+                # Boundary conditions - signal
+                forward_signal_amplitude[0] = (1 - self.r1) * \
+                                              sqrt(self.eta_in) * input_signal_amplitude[i] + \
+                                              self.r1 * backward_signal_amplitude[0]
+                backward_signal_amplitude[-1] = self.r2 * forward_signal_amplitude[-1]
+
+                # Boundary conditions - ASE
+                forward_ASE_amplitude[0] = self.R1 * backward_ASE_amplitude[0]
+                backward_ASE_amplitude[-1] = self.R2 * forward_ASE_amplitude[-1]
+
+                alpha_s, alpha = self.calc_alpha(carrier_density)
+
+                material_gain_coefficient_signal, _ = self.gain_coefficient(
+                    carrier_density=carrier_density,
+                    energy=self.energy_signal)
+                material_gain_coefficient_signal = material_gain_coefficient_signal[0:self.number_spatial_divisions]
+                material_gain_coefficient_ASE, additive_spontaneous_emission_term_ASE = \
+                    self.gain_coefficient(carrier_density=carrier_density,
+                                          energy=self.energy)
+                material_gain_coefficient_ASE = \
+                    np.repeat(material_gain_coefficient_ASE.reshape((1,
+                                                                     material_gain_coefficient_ASE.shape[0])),
+                              self.number_spatial_divisions, axis=0)
+
+                tolerance = 0.01
