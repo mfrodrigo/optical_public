@@ -2,6 +2,7 @@
 
 """
 import numpy as np
+from scipy.interpolate import interp1d
 from math import sqrt, exp, pi, ceil
 
 
@@ -122,6 +123,8 @@ class SemiconductorOpticalAmplifier:
         self.delta_energy = (upper_energy - lower_energy_limit) / self.number_spectrum_slices
         self.energy = np.arange(lower_energy_limit, upper_energy +
                                 self.delta_energy, self.delta_energy)
+        n_columns = self.energy.shape[0]
+        self.energy = self.energy.reshape((1, n_columns))
 
     def calc_simulation_parameters(self):
         """
@@ -162,7 +165,7 @@ class SemiconductorOpticalAmplifier:
         else:
             raise NameError('Band must be "conduction" or "valence"')
 
-    def gain_coefficient(self, carrier_density, energy):
+    def gain_coefficient_signal(self, carrier_density, energy):
         """
         This function calculate the material gain coefficient
         and additive spontaneous emission term.
@@ -204,6 +207,17 @@ class SemiconductorOpticalAmplifier:
 
         return material_gain_coefficient, additive_spontaneous_emission_term
 
+    def gain_coefficient_ASE(self, carrier_density, energy):
+        gain_coefficient = np.zeros((carrier_density.shape[1], energy.shape[1]))
+        additive_spontaneous_emission_term = np.zeros((carrier_density.shape[1], energy.shape[1]))
+        for i in range(carrier_density.shape[1]):
+            gain_coefficient[i, :], additive_spontaneous_emission_term[i, :] = self.gain_coefficient_signal(
+                carrier_density[0, i],
+                energy
+            )
+
+        return gain_coefficient, additive_spontaneous_emission_term
+
     def calc_alpha(self, carrier_density):
         """
         This function calculates the signal's attenuation coefficient
@@ -220,10 +234,10 @@ class SemiconductorOpticalAmplifier:
         """
         signal_attenuation_coefficient = self.K0 + \
                                          self.confine * self.K1 * carrier_density / 1e24
+        transpose_value = signal_attenuation_coefficient.transpose()
         attenuation_coefficient = np.repeat(
-            signal_attenuation_coefficient,
-            self.number_spectrum_slices + 1).reshape((signal_attenuation_coefficient.shape[0],
-                                                      self.number_spectrum_slices + 1))
+            transpose_value,
+            self.number_spatial_divisions + 1, axis=1)
 
         return signal_attenuation_coefficient, attenuation_coefficient
 
@@ -246,9 +260,9 @@ class SemiconductorOpticalAmplifier:
             (-1j * self.signal_propagation_coefficient + 0.5 * (
                     self.confine * material_gain_coefficient_signal - alpha_s)
              ) * self.dz)
-        for i in range(self.number_spatial_divisions - 2, -1, -1):
-            forward_signal_amplitude[j] = forward_signal_amplitude[j - 1] * coefficient[j - 1]
-            backward_signal_amplitude[i] = backward_signal_amplitude[i + 1] * coefficient[i + 1]
+        for i in range(self.number_spatial_divisions - 1, -1, -1):
+            forward_signal_amplitude[0, j] = forward_signal_amplitude[0, j - 1] * coefficient[0, j - 1]
+            backward_signal_amplitude[0, i] = backward_signal_amplitude[0, i + 1] * coefficient[0, i]
             j += 1
 
         return forward_signal_amplitude, backward_signal_amplitude
@@ -274,8 +288,9 @@ class SemiconductorOpticalAmplifier:
                         (self.confine * material_gain_coefficient_ASE - alpha)
 
         for i in range(self.number_spatial_divisions - 1, -1, -1):
-            forward_ASE_amplitude[j] = forward_ASE_amplitude[j - 1] * exp_product[j - 1] + additive_term[j - 1]
-            backward_ASE_amplitude[i] = backward_ASE_amplitude[i + 1] * exp_product[i + 1] + additive_term[i + 1]
+            forward_ASE_amplitude[j, :] = forward_ASE_amplitude[j - 1, :] * exp_product[j - 1, :] + additive_term[j - 1,
+                                                                                                    :]
+            backward_ASE_amplitude[i, :] = backward_ASE_amplitude[i + 1, :] * exp_product[i, :] + additive_term[i, :]
             j += 1
 
         return forward_ASE_amplitude, backward_ASE_amplitude
@@ -294,68 +309,96 @@ class SemiconductorOpticalAmplifier:
 
         """
         first_term = abs(forward_ASE_amplitude - forward_ASE_amplitude_old) / forward_ASE_amplitude
-        second_term = abs(backward_ASE_amplitude - backward_ASE_amplitude_old) / backward_ASE_amplitude_old
+        second_term = abs(backward_ASE_amplitude - backward_ASE_amplitude_old) / backward_ASE_amplitude
         tolerance = np.max(50 * np.max(first_term + second_term, axis=0))
 
         return tolerance
 
-    def update_carrier_density(self, carrier_density, material_gain_coefficient_signal,
-                               forward_signal_amplitude, backward_signal_amplitude,
-                               forward_ASE_amplitude, backward_ASE_amplitude):
+    def calc_Q(self, carrier_density, material_gain_coefficient_signal,
+               forward_signal_amplitude, backward_signal_amplitude,
+               forward_ASE_amplitude, backward_ASE_amplitude,
+               material_gain_coefficient_ASE, K):
+        number_divisions = self.number_spatial_divisions
         first_term = self.bias_current / (self.e * self.d * self.W * self.L)
         second_term = (self.Anrad + self.Arad) * carrier_density + (self.Brad + self.Bnrad) * carrier_density ** 2 \
-                      + self.Dleak * carrier_density ** 5.5
-        third_term = np.abs(forward_signal_amplitude[0:self.number_spatial_divisions]) ** 2 + \
-                     np.abs(forward_signal_amplitude[1:self.number_spatial_divisions + 1]) ** 2 + \
-                     np.abs(backward_signal_amplitude[0:self.number_spatial_divisions]) ** 2 + \
-                     np.abs(backward_signal_amplitude[1:self.number_spatial_divisions + 1]) ** 2
-        fourth_term = 0.5 * self.confine / (self.d * self.W) * (material_gain_coefficient_signal*third_term)
-        fifth_term = forward_ASE_amplitude[0:self.number_spatial_divisions] + \
-                     forward_ASE_amplitude[1:self.number_spatial_divisions+1]+ backward_ASE_amplitude
-        pass
+                      + self.Caug * (carrier_density ** 3) + self.Dleak * (carrier_density ** 5.5)
+        third_term = np.abs(forward_signal_amplitude[0, 0:number_divisions]) ** 2 + \
+                     np.abs(forward_signal_amplitude[0, 1:number_divisions + 1]) ** 2 + \
+                     np.abs(backward_signal_amplitude[0, 0:number_divisions]) ** 2 + \
+                     np.abs(backward_signal_amplitude[0, 1:number_divisions + 1]) ** 2
+        fourth_term = 0.5 * self.confine / (self.d * self.W) * (material_gain_coefficient_signal * third_term)
+        fifth_term = forward_ASE_amplitude[0:number_divisions, :] + \
+                     forward_ASE_amplitude[1:number_divisions + 1, :] + \
+                     backward_ASE_amplitude[0:number_divisions, :] + \
+                     backward_ASE_amplitude[1:number_divisions + 1, :]
+        sixth_term = self.confine / (self.d * self.W) * np.sum(material_gain_coefficient_ASE * K * fifth_term, axis=1)
+        sixth_term = sixth_term.reshape(1, len(sixth_term))
+        Q = first_term - second_term - fourth_term - sixth_term
+        return Q
+
+    @staticmethod
+    def update_parameters(carrier_density, Q,
+                          oldsignQ, weight):
+        """
+
+        Args:
+            carrier_density: (ndarray)
+            Q:  (ndarray)
+            oldsignQ: (ndarray)
+            weight: (ndarray)
+
+        Returns:
+
+        """
+        sign_Q = np.sign(Q)
+        weight[sign_Q != oldsignQ] = weight[sign_Q != oldsignQ] / 2
+        carrier_density[Q > 0] = carrier_density[Q > 0] * (1 + weight[Q > 0])
+        carrier_density[Q <= 0] = carrier_density[Q <= 0] / (
+                1 + weight[Q <= 0])
+
+        return carrier_density, weight
 
     def run_simulation_soa(self):
         """"""
         input_signal_amplitude = np.sqrt(self.Pin) / sqrt(self.energy_signal)
+        Pout = np.zeros(self.Pin.shape[0])
+        Nout = np.zeros(self.Pin.shape[0])
         for i in range(self.Pin.shape[0]):
-            weighting_factor = np.ones(self.number_spatial_divisions) * 0.1
-            carrier_density = np.ones(self.number_spatial_divisions + 1) * 1.2e24
-            forward_signal_amplitude = np.zeros(self.number_spatial_divisions + 1, dtype=np.complex128)
-            backward_signal_amplitude = np.zeros(self.number_spatial_divisions + 1, dtype=np.complex128)
+            weighting_factor = np.ones((1, self.number_spatial_divisions)) * 0.1
+            carrier_density = np.ones((1, self.number_spatial_divisions)) * 1.2e24
+            forward_signal_amplitude = np.zeros((1, self.number_spatial_divisions + 1), dtype=np.complex128)
+            backward_signal_amplitude = np.zeros((1, self.number_spatial_divisions + 1), dtype=np.complex128)
             forward_ASE_amplitude = np.zeros((self.number_spatial_divisions + 1,
                                               self.number_spatial_divisions + 1))
             backward_ASE_amplitude = np.zeros((self.number_spatial_divisions + 1,
                                                self.number_spatial_divisions + 1))
 
-            oldsignQ = np.ones(self.number_spatial_divisions)
+            oldsignQ = np.ones((1, self.number_spatial_divisions))
 
             tolerance = 999
+
             while tolerance > self.tolerance:
-                forward_ASE_old = forward_ASE_amplitude
-                backward_ASE_old = backward_ASE_amplitude
+                forward_ASE_old = forward_ASE_amplitude.copy()
+                backward_ASE_old = backward_ASE_amplitude.copy()
 
                 # Boundary conditions - signal
-                forward_signal_amplitude[0] = (1 - self.r1) * \
-                                              sqrt(self.eta_in) * input_signal_amplitude[i] + \
-                                              self.r1 * backward_signal_amplitude[0]
-                backward_signal_amplitude[-1] = self.r2 * forward_signal_amplitude[-1]
+                forward_signal_amplitude[0, 0] = (1 - self.r1) * \
+                                                 sqrt(self.eta_in) * input_signal_amplitude[i] + \
+                                                 self.r1 * backward_signal_amplitude[0, 0]
+                backward_signal_amplitude[0, -1] = self.r2 * forward_signal_amplitude[0, -1]
 
                 # Boundary conditions - ASE
-                forward_ASE_amplitude[0] = self.R1 * backward_ASE_amplitude[0]
-                backward_ASE_amplitude[-1] = self.R2 * forward_ASE_amplitude[-1]
+                forward_ASE_amplitude[0, 0] = self.R1 * backward_ASE_amplitude[0, 0]
+                backward_ASE_amplitude[-1, 0] = self.R2 * forward_ASE_amplitude[-1, 0]
 
                 alpha_s, alpha = self.calc_alpha(carrier_density)
 
-                material_gain_coefficient_signal, _ = self.gain_coefficient(
+                material_gain_coefficient_signal, _ = self.gain_coefficient_signal(
                     carrier_density=carrier_density,
                     energy=self.energy_signal)
                 material_gain_coefficient_ASE, additive_spontaneous_emission_term_ASE = \
-                    self.gain_coefficient(carrier_density=carrier_density,
-                                          energy=self.energy)
-                material_gain_coefficient_ASE = \
-                    np.repeat(material_gain_coefficient_ASE.reshape((1,
-                                                                     material_gain_coefficient_ASE.shape[0])),
-                              self.number_spatial_divisions + 1, axis=0)
+                    self.gain_coefficient_ASE(carrier_density=carrier_density,
+                                              energy=self.energy)
 
                 forward_signal_amplitude, backward_signal_amplitude = self.solve_travelling_wave_equations_signal(
                     forward_signal_amplitude, backward_signal_amplitude,
@@ -376,4 +419,21 @@ class SemiconductorOpticalAmplifier:
                                                 backward_ASE_amplitude[:self.number_spatial_divisions, index:],
                                                 forward_ASE_old[1:, index:],
                                                 backward_ASE_old[:self.number_spatial_divisions, index:])
-                tolerance = 0.01
+                print(tolerance)
+                Q = self.calc_Q(carrier_density, material_gain_coefficient_signal,
+                                forward_signal_amplitude, backward_signal_amplitude,
+                                forward_ASE_amplitude, backward_ASE_amplitude,
+                                material_gain_coefficient_ASE,
+                                K)
+                carrier_density, weighting_factor = self.update_parameters(carrier_density, Q,
+                                                                           oldsignQ, weighting_factor)
+
+                oldsignQ = np.sign(Q)
+
+            output_amplitude = (1 - self.r2) * forward_signal_amplitude[0, -1]
+            Pout[i] = self.energy_signal * (abs(output_amplitude) ** 2)
+            Nout[i] = 2 * self.eta_out * (1 - self.R2) * \
+                      np.sum(K * forward_ASE_amplitude[self.number_spatial_divisions, :] * self.energy)
+            sigmaN_spec = 2 * self.eta_out * (1 - self.R2) * \
+                          (K * forward_ASE_amplitude[self.number_spatial_divisions, :] * self.energy) * \
+                          self.h / self.delta_energy
