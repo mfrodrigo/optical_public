@@ -27,7 +27,7 @@ class Plotter:
         plt.ylabel('|u1(z,t)|^2/P_0')
         plt.legend()
         plt.grid(True)
-        fig.show()
+        plt.show()
 
     @staticmethod
     def plot_power_output_and_delta_output(z, power_output, delta_output, name):
@@ -57,4 +57,4 @@ class Plotter:
         ax2.tick_params(axis='y', labelcolor=color)
 
         fig.tight_layout()  # otherwise the right y-label is slightly clipped
-        fig.show()
+        plt.show()

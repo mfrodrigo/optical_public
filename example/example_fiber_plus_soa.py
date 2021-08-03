@@ -23,6 +23,7 @@ import numpy as np
 from channel.channel import Channel
 from pulse.half_power import return_half_power
 from output.plotter import Plotter
+from optical_amplifier.soa import SemiconductorOpticalAmplifier
 from output.tables import Tables
 
 # dt
@@ -74,15 +75,4 @@ for nz in nz_step:
     list_output_2.append(list_values[3])
     list_delta_2.append(list_values[2])
 
-title_graph_1 = 'Plot Valores de Saída: ' + 'beta_2_' + str(beta2) \
-                + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.png'
-Plotter.plot_power_output_and_delta_output(np.array(nz_step) * dz,
-                                           np.array(list_output_1) / P0 * 100,
-                                           list_delta_1,
-                                           title_graph_1)
 
-title_table_1 = 'resultados_de_beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.csv'
-Tables.export_table_results(list(np.array(nz_step) * dz),
-                            list_output_1,
-                            list_delta_1,
-                            title_table_1)
