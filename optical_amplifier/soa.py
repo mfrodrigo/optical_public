@@ -363,6 +363,7 @@ class SemiconductorOpticalAmplifier:
         input_signal_amplitude = np.sqrt(self.Pin) / sqrt(self.energy_signal)
         Pout = np.zeros(self.Pin.shape[0])
         Nout = np.zeros(self.Pin.shape[0])
+        sigmaN = np.zeros(self.Pin.shape[0])
         for i in range(self.Pin.shape[0]):
             weighting_factor = np.ones((1, self.number_spatial_divisions)) * 0.1
             carrier_density = np.ones((1, self.number_spatial_divisions)) * 1.2e24
@@ -430,10 +431,18 @@ class SemiconductorOpticalAmplifier:
 
                 oldsignQ = np.sign(Q)
 
-            output_amplitude = (1 - self.r2) * forward_signal_amplitude[0, -1]
+            output_amplitude = (1 - self.r2) * sqrt(self.eta_out)*forward_signal_amplitude[0, -1]
             Pout[i] = self.energy_signal * (abs(output_amplitude) ** 2)
             Nout[i] = 2 * self.eta_out * (1 - self.R2) * \
                       np.sum(K * forward_ASE_amplitude[self.number_spatial_divisions, :] * self.energy)
             sigmaN_spec = 2 * self.eta_out * (1 - self.R2) * \
                           (K * forward_ASE_amplitude[self.number_spatial_divisions, :] * self.energy) * \
                           self.h / self.delta_energy
+            interpolation_function = interp1d(sigmaN_spec[0], self.energy[0])
+            sigmaN[i] = interpolation_function(self.energy_signal)
+
+        Pout_dBm = 10 * np.log10(Pout / 1e-3)
+        Gain = Pout / self.Pin
+        noise_figure = sigmaN / (self.energy_signal * Gain) + self.eta_out / Gain
+
+        return Pout_dBm, Gain, noise_figure

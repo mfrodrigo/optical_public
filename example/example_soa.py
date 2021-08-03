@@ -14,4 +14,7 @@ soa = SemiconductorOpticalAmplifier(
         wavelength_0=lambda0,
         wavelength_1=lambda1)
 
-soa.run_simulation_soa()
+Pout_dBm, Gain, noise_figure = soa.run_simulation_soa()
+print(Pout_dBm)
+print(Gain)
+print(noise_figure)
