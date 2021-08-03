@@ -58,7 +58,7 @@ betap_DCE = np.transpose(np.array([0, 0, beta2_DCE]).reshape(1, 3))  # dispersio
 gamma_DCE = 0.03
 alpha_DCE = 0.4/4.343
 
-nz_step = [20]
+nz_step = [10]
 list_output_1 = []
 list_delta_1 = []
 list_output_2 = []
@@ -76,7 +76,7 @@ for nz in nz_step:
                     + str(alpha) + '_beta_2_' + str(beta2) + '_gamma_' \
                     + str(gamma) + '.png'
 
-    Plotter.plot_pulse_input_and_output(t, u0, u1, title_graph_1)
+    Plotter.plot_pulse_input_and_output(t, abs(u0)**2, abs(u1)**21, title_graph_1)
 
     nz_DCE = -int(nz * D / D_DCE)
     u2 = Channel.ssprop(u1, dt, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
@@ -88,10 +88,10 @@ for nz in nz_step:
     title_graph_2 = 'Plot canal: ' + str(nz_DCE * dz) + 'Km, alpha = ' + str(alpha_DCE) + '_beta_2_' \
                     + str(beta2_DCE) + '_gamma_' + str(gamma_DCE) + '.png'
 
-    Plotter.plot_pulse_input_and_output(t, u0, u2, title_graph_2)
+    Plotter.plot_pulse_input_and_output(t, abs(u0)**2, abs(u2)**2, title_graph_2)
     title_graph_3 = 'Plot canal DCF: ' + str(nz_DCE * dz) + 'Km, alpha = ' + str(alpha_DCE) + '_beta_2_' \
                     + str(beta2_DCE) + '_gamma_' + str(gamma_DCE) + '.png'
-    Plotter.plot_pulse_input_and_output(t, u1, u2, title_graph_3)
+    Plotter.plot_pulse_input_and_output(t, abs(u1)**2, abs(u2)**2, title_graph_3)
 
 title_graph_1 = 'Plot Valores de Saída: ' + 'beta_2_' + str(beta2) \
                 + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.png'

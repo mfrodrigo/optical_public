@@ -20,14 +20,14 @@ class Plotter:
 
         """
         fig = plt.figure()
-        plt.plot(t, abs(pulse_input[:, 0]) ** 2, label='Input')
-        plt.plot(t, abs(pulse_output[:, 0]) ** 2, label='Output')
+        plt.plot(t, pulse_input, label='Input')
+        plt.plot(t, pulse_output, label='Output')
         plt.title('Gaussian Pulse ')
         plt.xlabel(r'$(t-\beta_1z)/T_0$')
         plt.ylabel('|u1(z,t)|^2/P_0')
         plt.legend()
         plt.grid(True)
-        plt.show()
+        fig.savefig(name)
 
     @staticmethod
     def plot_power_output_and_delta_output(z, power_output, delta_output, name):
@@ -57,4 +57,4 @@ class Plotter:
         ax2.tick_params(axis='y', labelcolor=color)
 
         fig.tight_layout()  # otherwise the right y-label is slightly clipped
-        plt.show()
+        fig.savefig(name)

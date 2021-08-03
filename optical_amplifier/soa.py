@@ -4,6 +4,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from math import sqrt, exp, pi, ceil
+from tqdm import tqdm
 
 
 class SemiconductorOpticalAmplifier:
@@ -364,7 +365,7 @@ class SemiconductorOpticalAmplifier:
         Pout = np.zeros(self.Pin.shape[0])
         Nout = np.zeros(self.Pin.shape[0])
         sigmaN = np.zeros(self.Pin.shape[0])
-        for i in range(self.Pin.shape[0]):
+        for i in tqdm(range(self.Pin.shape[0])):
             weighting_factor = np.ones((1, self.number_spatial_divisions)) * 0.1
             carrier_density = np.ones((1, self.number_spatial_divisions)) * 1.2e24
             forward_signal_amplitude = np.zeros((1, self.number_spatial_divisions + 1), dtype=np.complex128)

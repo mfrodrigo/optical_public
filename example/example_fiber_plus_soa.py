@@ -27,13 +27,13 @@ from optical_amplifier.soa import SemiconductorOpticalAmplifier
 from output.tables import Tables
 
 # dt
-T = 500  # (ps) deve ser pelo 4x FWHM
-num_samplesperbit = 2 ** 11  # should be 2^n
+T = 500 # (ps) deve ser pelo 4x FWHM
+num_samplesperbit = 2 ** 7  # should be 2^n
 dt = T / num_samplesperbit  # sampling time(ps) # time step (ps)
 t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * dt
 
 # Pulse
-FWHM = 10
+FWHM = 100
 t0 = 0
 C = 0
 m = 1
@@ -49,30 +49,47 @@ speed_of_light = 299792.458  # nm/ps
 D = 17  # [ps/nm.km]
 beta2 = -(D * wavelength ** 2) / (math.pi * speed_of_light)  # beta2 (ps^2/km)
 betap = np.transpose(np.array([0, 0, beta2]).reshape(1, 3))  # dispersion polynomial
-gamma = 0.01
+gamma = 0.0
 alpha = 0.2/4.343
 
-nz_step = [20]
-list_output_1 = []
-list_delta_1 = []
-list_output_2 = []
-list_delta_2 = []
+# DCE Fiber
+D_DCE = -100  # [ps/nm.km]
+beta2_DCE = -(D_DCE * (wavelength ** 2)) / (math.pi * speed_of_light)  # beta2 (ps^2/km)
+betap_DCE = np.transpose(np.array([0, 0, beta2_DCE]).reshape(1, 3))  # dispersion polynomial
+gamma_DCE = 0.03
+alpha_DCE = 0.4/4.343
+
+nz_step = [10]
+
+lambda0 = 1300  # start wavelength for gain coefficient and ASE spectrum (nm)
+lambda1 = 1650  # end wavelength for gain coefficient and ASE spectrum (nm)
 
 for nz in nz_step:
     # output
     u1 = Channel.ssprop(u0, dt, dz, nz, alpha, betap, gamma)
 
-    list_values = return_half_power(t, u1)
-    list_output_1.append(list_values[3])
-    list_delta_1.append(list_values[2])
-
     title_graph_1 = 'Plot canal: ' + str(nz * dz) + 'Km, alpha = ' \
                     + str(alpha) + '_beta_2_' + str(beta2) + '_gamma_' \
                     + str(gamma) + '.png'
 
-    Plotter.plot_pulse_input_and_output(t, u0, u1, title_graph_1)
+    Plotter.plot_pulse_input_and_output(t, abs(u0)**2, abs(u1)**2, title_graph_1)
 
-    list_output_2.append(list_values[3])
-    list_delta_2.append(list_values[2])
+    u3 = 10*np.log10(abs(u1)**2/1e-3).transpose()[0]
+    soa = SemiconductorOpticalAmplifier(
+        Pin_dbm=u3,
+        wavelength_s=wavelength,
+        number_spatial_divisions=100,
+        number_spectrum_slices=100,
+        wavelength_0=lambda0,
+        wavelength_1=lambda1)
 
+    Pout_dBm, Gain, noise_figure = soa.run_simulation_soa()
 
+    u4 = (abs(u1.transpose())**2)*Gain
+    title_graph_1 = 'Soa.png'
+
+    Plotter.plot_pulse_input_and_output(t, abs(u1)**2, u4[0], title_graph_1)
+
+    title_graph_1 = 'Input_output.png'
+
+    Plotter.plot_pulse_input_and_output(t,  abs(u0)**2, u4[0], title_graph_1)
