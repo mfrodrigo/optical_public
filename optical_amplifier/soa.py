@@ -420,7 +420,7 @@ class SemiconductorOpticalAmplifier:
                                                 backward_ASE_amplitude[:self.number_spatial_divisions, index:],
                                                 forward_ASE_old[1:, index:],
                                                 backward_ASE_old[:self.number_spatial_divisions, index:])
-                print(tolerance)
+
                 Q = self.calc_Q(carrier_density, material_gain_coefficient_signal,
                                 forward_signal_amplitude, backward_signal_amplitude,
                                 forward_ASE_amplitude, backward_ASE_amplitude,
@@ -438,7 +438,9 @@ class SemiconductorOpticalAmplifier:
             sigmaN_spec = 2 * self.eta_out * (1 - self.R2) * \
                           (K * forward_ASE_amplitude[self.number_spatial_divisions, :] * self.energy) * \
                           self.h / self.delta_energy
-            interpolation_function = interp1d(sigmaN_spec[0], self.energy[0])
+            x1, ind = np.unique(sigmaN_spec[0], return_index=True)
+            x2 = self.energy[0, ind]
+            interpolation_function = interp1d(x2, x1, kind='cubic')
             sigmaN[i] = interpolation_function(self.energy_signal)
 
         Pout_dBm = 10 * np.log10(Pout / 1e-3)
