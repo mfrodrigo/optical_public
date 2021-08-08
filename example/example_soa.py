@@ -1,5 +1,5 @@
 """
-
+Test Soa
 """
 import numpy as np
 from optical_amplifier.soa import SemiconductorOpticalAmplifier
