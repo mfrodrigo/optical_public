@@ -19,7 +19,7 @@ t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * 
 pulse = Pulse(
     power=100e-6,
     time=t,
-    SNR_dB=20,
+    SNR_dB=30,
     FWHM=100
 )
 
@@ -32,8 +32,8 @@ speed_of_light = 299792.458  # nm/ps
 D = 17  # [ps/nm.km]
 beta2 = -(D * wavelength ** 2) / (math.pi * speed_of_light)  # beta2 (ps^2/km)
 betap = np.transpose(np.array([0, 0, beta2]).reshape(1, 3))  # dispersion polynomial
-gamma = 0.0
-alpha = 0.
+gamma = 0.01
+alpha = 0.2/4.343
 
 # DCE Fiber
 D_DCE = -100  # [ps/nm.km]
@@ -42,7 +42,7 @@ betap_DCE = np.transpose(np.array([0, 0, beta2_DCE]).reshape(1, 3))  # dispersio
 gamma_DCE = 0.03
 alpha_DCE = 0.4/4.343
 
-nz_step = [20]
+nz_step = [100]
 
 lambda0 = 1300  # start wavelength for gain coefficient and ASE spectrum (nm)
 lambda1 = 1650  # end wavelength for gain coefficient and ASE spectrum (nm)
