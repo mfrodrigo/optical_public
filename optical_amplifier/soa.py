@@ -80,6 +80,7 @@ class SemiconductorOpticalAmplifier:
     def __init__(self, Pin_dbm, wavelength_s,
                  number_spatial_divisions, number_spectrum_slices,
                  wavelength_0, wavelength_1,
+                 pulse=None,
                  bias_current=100e-3, tolerance=0.1):
         self.Pin_dbm = Pin_dbm
         self.wavelength_s = wavelength_s
@@ -89,6 +90,7 @@ class SemiconductorOpticalAmplifier:
         self.wavelength_1 = wavelength_1 * 1e-9
         self.bias_current = bias_current
         self.tolerance = tolerance
+        self.pulse = pulse
         self.Pin = None
         self.energy_signal = None
         self.signal_propagation_coefficient = None
@@ -453,3 +455,8 @@ class SemiconductorOpticalAmplifier:
     def amplifier_pulse(self):
 
         Pout_dBm, Gain, noise_figure = self.run_simulation_soa()
+        noise = (self.pulse.pulse)**2-abs(self.pulse.original_pulse)**2
+        noise = noise[:, 0]*noise_figure
+        self.pulse.pulse[:, 0] = np.sqrt((abs(self.pulse.pulse[:, 0])**2 + noise[:, 0])*Gain)
+
+        return self.pulse

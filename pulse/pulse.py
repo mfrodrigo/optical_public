@@ -34,6 +34,7 @@ class Pulse:
         self.pulse = None
         if type_pulse == "Gaussian":
             self._gaussian_pulse()
+        self.original_pulse = self.pulse.copy()
         self._add_noise()
 
     def _gaussian_pulse(self):
@@ -44,5 +45,9 @@ class Pulse:
                     -((1 + 1j * self.C) / 2) * (2 * (self.t - self.t0) / self.FWHM) ** (2 * self.m))
 
     def _add_noise(self):
+        """
+        Returns:
+
+        """
         self.pulse[:, 0] = np.sqrt(abs(self.pulse[:, 0])**2 + self.P0 / self.SNR * np.random.randn(self.pulse.shape[0]),
                                    dtype="complex")

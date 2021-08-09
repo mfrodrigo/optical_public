@@ -12,7 +12,7 @@ from output.tables import Tables
 
 # dt
 T = 1000  # (ps) deve ser pelo 4x FWHM
-num_samplesperbit = 2 ** 7  # should be 2^n
+num_samplesperbit = 2 ** 3  # should be 2^n
 dt = T / num_samplesperbit  # sampling time(ps) # time step (ps)
 t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * dt
 
@@ -50,7 +50,7 @@ lambda1 = 1650  # end wavelength for gain coefficient and ASE spectrum (nm)
 for nz in nz_step:
     # output
     u1 = Channel.ssprop(pulse.pulse, dt, dz, nz, alpha, betap, gamma)
-
+    pulse.original_pulse = Channel.ssprop(pulse.original_pulse, dt, dz, nz, alpha, betap, gamma)
     title_graph_1 = 'Plot canal: ' + str(nz * dz) + 'Km, alpha = ' \
                     + str(alpha) + '_beta_2_' + str(beta2) + '_gamma_' \
                     + str(gamma) + '.png'
@@ -59,6 +59,7 @@ for nz in nz_step:
 
     nz_DCE = -int(nz * D / D_DCE)
     u2 = Channel.ssprop(u1, dt, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
+    pulse.original_pulse = Channel.ssprop(pulse.original_pulse, dt, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
 
     Plotter.plot_pulse_input_and_output(t,  abs(u1)**2, abs(u2)**2, "Fibra DCF")
 
@@ -71,10 +72,11 @@ for nz in nz_step:
         number_spectrum_slices=100,
         wavelength_0=lambda0,
         wavelength_1=lambda1,
+        pulse=pulse,
         bias_current=200e-3, tolerance=0.1
     )
 
-    Pout_dBm, Gain, noise_figure = soa.run_simulation_soa()
+    Pout_dBm, Gain, noise_figure = soa.amplifier_pulse()
 
     u4 = (abs(u1.transpose())**2)*Gain
     title_graph_1 = 'Soa.png'
