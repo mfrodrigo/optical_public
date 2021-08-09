@@ -19,7 +19,7 @@ t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * 
 pulse = Pulse(
     power=100e-6,
     time=t,
-    SNR_dB=30,
+    SNR_dB=10,
     FWHM=100
 )
 
@@ -57,6 +57,12 @@ for nz in nz_step:
 
     Plotter.plot_pulse_input_and_output(t, abs(pulse.pulse)**2, abs(u1)**2, title_graph_1)
 
+    nz_DCE = -int(nz * D / D_DCE)
+    u2 = Channel.ssprop(u1, dt, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
+
+    Plotter.plot_pulse_input_and_output(t,  abs(u1)**2, abs(u2)**2, "Fibra DCF")
+
+    u1 = u2
     u3 = 10*np.log10(abs(u1)**2/1e-3).transpose()[0]
     soa = SemiconductorOpticalAmplifier(
         Pin_dbm=u3,

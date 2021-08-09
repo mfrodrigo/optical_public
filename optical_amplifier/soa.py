@@ -449,3 +449,7 @@ class SemiconductorOpticalAmplifier:
         noise_figure = sigmaN / (self.energy_signal * Gain) + self.eta_out / Gain
 
         return Pout_dBm, Gain, noise_figure
+
+    def amplifier_pulse(self):
+
+        Pout_dBm, Gain, noise_figure = self.run_simulation_soa()

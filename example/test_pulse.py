@@ -16,7 +16,7 @@ t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * 
 pulse_1 = Pulse(
     power=100e-6,
     time=t,
-    SNR_dB=30,
+    SNR_dB=0,
     FWHM=100
 )
 

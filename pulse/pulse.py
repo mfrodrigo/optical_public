@@ -40,7 +40,9 @@ class Pulse:
         """
         """
         self.pulse = np.zeros(shape=(len(self.t), 1), dtype=complex)
-        self.pulse[:, 0] = sqrt(self.P0) * 2 ** (-((1 + 1j * self.C) / 2) * (2 * (self.t - self.t0) / self.FWHM) ** (2 * self.m))
+        self.pulse[:, 0] = sqrt(self.P0) * 2 ** (
+                    -((1 + 1j * self.C) / 2) * (2 * (self.t - self.t0) / self.FWHM) ** (2 * self.m))
 
     def _add_noise(self):
-        self.pulse[:, 0] = self.pulse[:, 0] + sqrt(self.P0/self.SNR)*np.random.randn(self.pulse.shape[0])
+        self.pulse[:, 0] = np.sqrt(abs(self.pulse[:, 0])**2 + self.P0 / self.SNR * np.random.randn(self.pulse.shape[0]),
+                                   dtype="complex")
