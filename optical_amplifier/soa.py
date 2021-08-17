@@ -90,7 +90,6 @@ class SemiconductorOpticalAmplifier:
         self.wavelength_1 = wavelength_1 * 1e-9
         self.bias_current = bias_current
         self.tolerance = tolerance
-        self.pulse = pulse
         self.Pin = None
         self.energy_signal = None
         self.signal_propagation_coefficient = None
@@ -434,7 +433,7 @@ class SemiconductorOpticalAmplifier:
 
                 oldsignQ = np.sign(Q)
 
-            output_amplitude = (1 - self.r2) * sqrt(self.eta_out)*forward_signal_amplitude[0, -1]
+            output_amplitude = (1 - self.r2) * sqrt(self.eta_out) * forward_signal_amplitude[0, -1]
             Pout[i] = self.energy_signal * (abs(output_amplitude) ** 2)
             Nout[i] = 2 * self.eta_out * (1 - self.R2) * \
                       np.sum(K * forward_ASE_amplitude[self.number_spatial_divisions, :] * self.energy)
@@ -452,11 +451,4 @@ class SemiconductorOpticalAmplifier:
 
         return Pout_dBm, Gain, noise_figure
 
-    def amplifier_pulse(self):
 
-        Pout_dBm, Gain, noise_figure = self.run_simulation_soa()
-        noise = (self.pulse.pulse)**2-abs(self.pulse.original_pulse)**2
-        noise = noise[:, 0]*noise_figure
-        self.pulse.pulse[:, 0] = np.sqrt((abs(self.pulse.pulse[:, 0])**2 + noise[:, 0])*Gain)
-
-        return self.pulse

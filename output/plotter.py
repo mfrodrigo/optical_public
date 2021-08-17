@@ -2,7 +2,7 @@
 
 """
 import matplotlib.pyplot as plt
-
+import plotly.graph_objects as go
 
 class Plotter:
 
@@ -28,6 +28,21 @@ class Plotter:
         plt.legend()
         plt.grid(True)
         fig.savefig(name)
+
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(
+            x=t,
+            y=pulse_input[:, 0],
+            name='Input',
+        ))
+        fig.add_trace(go.Scatter(
+            x=t,
+            y=pulse_output[:, 0],
+            name='Output',
+        ))
+
+        fig.show()
 
     @staticmethod
     def plot_power_output_and_delta_output(z, power_output, delta_output, name):
