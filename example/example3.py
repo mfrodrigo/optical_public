@@ -77,6 +77,7 @@ for nz in nz_step:
 
     Pout_dBm, Gain, noise_figure = soa.run_simulation_soa()
     print(Gain)
+    print(noise_figure)
     u4 = np.sqrt((abs(u2[:, 0]) ** 2) * Gain).reshape((u2.shape))
     pulse.original_pulse[:, 0] = np.sqrt((abs(pulse.original_pulse[:, 0]) ** 2) * Gain)
     noise = abs(u4) ** 2 - abs(pulse.original_pulse) ** 2
