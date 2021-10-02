@@ -19,7 +19,7 @@ t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * 
 pulse = Pulse(
     power=1e-3,
     time=t,
-    SNR_dB=35,
+    SNR_dB=30,
     FWHM=100
 )
 
@@ -82,7 +82,7 @@ for nz in nz_step:
     pulse.original_pulse[:, 0] = np.sqrt((abs(pulse.original_pulse[:, 0]) ** 2) * Gain)
     noise = abs(u4) ** 2 - abs(pulse.original_pulse) ** 2
     noise[:, 0] = (noise[:, 0] * noise_figure)
-    u4 = np.sqrt(abs(u4) ** 2 + noise)
+    u4 = np.sqrt(abs(pulse.original_pulse) ** 2 + noise)
     title_graph_1 = 'Soa.png'
 
     Plotter.plot_pulse_input_and_output(t, abs(u2) ** 2, abs(u4) ** 2, title_graph_1)

@@ -4,6 +4,7 @@
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
+
 class Plotter:
 
     @staticmethod
@@ -23,7 +24,7 @@ class Plotter:
         plt.plot(t, pulse_input, label='Input')
         plt.plot(t, pulse_output, label='Output')
         plt.title('Gaussian Pulse ')
-        plt.xlabel(r'$(t-\beta_1z)/T_0$')
+        plt.xlabel('t')
         plt.ylabel('|u1(z,t)|^2/P_0')
         plt.legend()
         plt.grid(True)
