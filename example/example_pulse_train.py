@@ -27,7 +27,7 @@ pulse = Pulse(
 )
 
 array_prbs_7 = np.repeat(prbs_7(), num_samplesperbit, axis=0) * 5
-Plotter.plot_pulse_input_and_output(t, abs(pulse.pulse) ** 2, array_prbs_7, "a")
+Plotter.plot_pulse_input_and_output(t, abs(pulse.pulse) ** 2, array_prbs_7/5000, "a")
 
 mach_zehnder = MachZehnderInterferometer(
     pi_voltage_1=5,
@@ -82,4 +82,4 @@ for nz in nz_step:
 
     title_graph_1 = 'Input_output.png'
 
-    Plotter.plot_pulse_input_and_output(t, abs(u0) ** 2, abs(u2) ** 2, title_graph_1)
+    Plotter.plot_pulse_input_and_output(t, abs(u0) ** 2, 190*abs(u2) ** 2, title_graph_1)
