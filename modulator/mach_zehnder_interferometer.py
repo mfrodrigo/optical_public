@@ -27,4 +27,4 @@ class MachZehnderInterferometer:
         phase_shift_1 = voltage_1 * pi / self.pi_voltage_1
         phase_shift_2 = voltage_2 * pi / self.pi_voltage_2
         output_field = field * 0.5 * (exp(1j * phase_shift_1) + exp(1j * phase_shift_2))
-        return self.electro_optical_response(output_field)
+        return output_field
