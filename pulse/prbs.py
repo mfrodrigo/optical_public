@@ -13,7 +13,6 @@ def prbs_7(amount_of_values=128):
     start = np.uint8(0X02)
     a = start
     print(start)
-
     prbs_7 = []
     i = 0
     while 1:
