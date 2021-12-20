@@ -8,42 +8,35 @@ import plotly.graph_objects as go
 class Plotter:
 
     @staticmethod
-    def plot_pulse_input_and_output(t, pulse_input, pulse_output, name):
+    def plot_pulse_input_and_output(xy_par,
+                                    graph_title: str, x_graph: str,
+                                    y_graph: str):
         """
 
         Args:
-            t:
-            pulse_input:
-            pulse_output:
-            name:
+            xy_par:
+            y_graph:
+            x_graph:
+            graph_title:
 
         Returns:
 
         """
-        fig = plt.figure()
-        plt.plot(t, pulse_input, label='Input')
-        plt.plot(t, pulse_output, label='Output')
-        plt.title('Gaussian Pulse ')
-        plt.xlabel('t')
-        plt.ylabel('|u1(z,t)|^2/P_0')
-        plt.legend()
-        plt.grid(True)
-        fig.savefig(name)
-
         fig = go.Figure()
 
-        fig.add_trace(go.Scatter(
-            x=t,
-            y=pulse_input[:, 0],
-            name='Input',
-        ))
-        fig.add_trace(go.Scatter(
-            x=t,
-            y=pulse_output[:, 0],
-            name='Output',
-        ))
+        for i in xy_par:
+            fig.add_trace(go.Scatter(
+                x=i[0],
+                y=i[1],
+                name=i[2],
+            ))
+
+        fig.update_layout(title=graph_title,
+                          xaxis_title=x_graph,
+                          yaxis_title=y_graph)
 
         fig.show()
+        fig.write_html(graph_title + ".html")
 
     @staticmethod
     def plot_power_output_and_delta_output(z, power_output, delta_output, name):

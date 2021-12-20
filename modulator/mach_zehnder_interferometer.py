@@ -1,8 +1,9 @@
 """
 
 """
-from numpy import pi, exp
-from scipy.signal import butter, lfilter
+from numpy import pi, exp, array
+from scipy.fft import fftfreq, fft, ifft
+from filters.filter_design import transfer_function
 
 
 class MachZehnderInterferometer:
@@ -18,10 +19,11 @@ class MachZehnderInterferometer:
         self.sampling_frequency = sampling_frequency
 
     def electro_optical_response(self, input_signal):
-        wn = self.electro_optical_band/self.sampling_frequency
-        b, a = butter(8, wn, btype='low', analog=False)
-        output_signal = lfilter(b, a, input_signal)
-        return output_signal
+        f = fftfreq(input_signal.shape[0], 1 / self.sampling_frequency)
+        output_signal = input_signal[:, 0]
+        output_signal = fft(output_signal)
+        output_signal = ifft(output_signal*transfer_function(f))
+        return array(output_signal, ndmin=2).T
 
     def modulate(self, field, voltage_1, voltage_2):
         phase_shift_1 = voltage_1 * pi / self.pi_voltage_1
