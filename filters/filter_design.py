@@ -1,12 +1,7 @@
 """
 Filter Design.
 """
-import numpy as np
-from numpy import ndarray, pi, abs, log10
-import matplotlib.pyplot as plt
-from scipy.fft import fft, fftfreq, ifft
-
-from output.plotter import Plotter
+from numpy import ndarray, pi
 
 
 def transfer_function(frequencies: ndarray) -> ndarray:
