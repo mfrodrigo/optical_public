@@ -2,18 +2,13 @@
 Filter Design.
 """
 from numpy import ndarray, pi
+from scipy.signal import butter, filtfilt
 
 
-def transfer_function(frequencies: ndarray) -> ndarray:
+def butter_filter(N, cutoff,  fs, sig) -> ndarray:
     """
-    Calculate the H(f) for a 4 order
-    butterworth filter and cutoff frequency equal to 1 GHz.
-    Args:
-        frequencies: (ndarray) frequency vector
 
-    Returns:
-        H: (ndarray) Response in a certain region of filter frequencies.
     """
-    s = 1j * 2 * pi * frequencies
-    H = 1.559e39 / (s ** 4 + 1.642e10 * s ** 3 + 1.348e20 * s ** 2 + 6.482e29 * s + 1.559e39)
-    return H
+    wn = cutoff/(fs/2)
+    b, a = butter(N, Wn=wn, btype='lowpass')
+    return filtfilt(b, a, sig)

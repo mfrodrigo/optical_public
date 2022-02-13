@@ -1,7 +1,7 @@
 import numpy as np
 from pulse.pulse import Pulse
 import matplotlib.pyplot as plt
-from filters.filter_design import transfer_function
+from filters.filter_design import butter_filter
 from output.plotter import Plotter
 
 # dt
@@ -34,7 +34,9 @@ Plotter.plot_pulse_input_and_output([[f, np.abs(sig_f) ** 2, " FFT pulso origina
                                     y_graph='Watt'
                                     )
 
-sig_filter = np.fft.ifftshift(np.fft.ifft(sig_f * transfer_function(f))) * len(sig_f)
+sig_filter = np.fft.ifftshift(np.fft.ifft(sig_f * butter_filter(
+    4, 1e9, fs=1 / dt, sig=f
+))) * len(sig_f)
 fig = plt.figure()
 plt.plot(t, np.abs(sig_filter) ** 2,
          label='Resposta ao filtro')
@@ -43,7 +45,6 @@ plt.ylabel('gaussian pulse')
 plt.legend()
 plt.grid(True)
 fig.savefig("pulso_filtrado.png")
-
 
 sig_f_output = np.fft.fft(np.fft.fftshift(sig_filter)) / len(sig_filter)
 fig = plt.figure()
@@ -60,14 +61,14 @@ Plotter.plot_pulse_input_and_output([[t, np.abs(pulse) ** 2, "input"],
                                     graph_title="Comparação dos pulsos de entrada e saída",
                                     x_graph='s',
                                     y_graph='Watt')
-Plotter.plot_pulse_input_and_output([[f, np.abs(sig_f)**2, 'input'],
-                                     [f, np.abs(sig_f_output)**2, 'output']],
+Plotter.plot_pulse_input_and_output([[f, np.abs(sig_f) ** 2, 'input'],
+                                     [f, np.abs(sig_f_output) ** 2, 'output']],
                                     graph_title="FFT dos pulsos de entrada e saída",
                                     x_graph='Hz',
                                     y_graph='Watt')
 
-Plotter.plot_pulse_input_and_output([[f, 20*np.log10(np.abs(transfer_function(f))), 'filtro']],
-                                    graph_title="Função de transferência",
-                                    x_graph='Hz',
-                                    y_graph='dB'
-                                    )
+# Plotter.plot_pulse_input_and_output([[f, 20 * np.log10(np.abs(transfer_function(f))), 'filtro']],
+#                                     graph_title="Função de transferência",
+#                                     x_graph='Hz',
+#                                     y_graph='dB'
+#                                     )
