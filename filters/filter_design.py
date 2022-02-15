@@ -1,11 +1,11 @@
 """
 Filter Design.
 """
-from numpy import ndarray, pi
+from numpy import ndarray
 from scipy.signal import butter, filtfilt
 
 
-def butter_filter(N, cutoff,  fs, sig) -> ndarray:
+def butter_filter(N: int, cutoff: float,  fs: float, sig: ndarray) -> ndarray:
     """
 
     """

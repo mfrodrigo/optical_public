@@ -13,9 +13,9 @@ from output.plotter import Plotter
 
 # dt
 T = 1000e-12  # (ps) deve ser pelo 4x FWHM
-num_samplesperbit = 2001  # should be 2^n
+num_samplesperbit = 2000  # should be 2^n
 dt = T / num_samplesperbit  # sampling time(ps) # time step (ps)
-pulse_number = 6
+pulse_number = 3
 t, t0 = Pulse.generate_time(
     pulse_number, num_samplesperbit,
     dt, T
