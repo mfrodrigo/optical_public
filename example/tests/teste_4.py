@@ -1,5 +1,4 @@
 import numpy as np
-
 from channel.channel import Channel
 from modulator.mach_zehnder_interferometer import MachZehnderInterferometer
 from pulse.pulse import Pulse
@@ -21,13 +20,13 @@ t, t0 = Pulse.generate_time(
 pulse = Pulse(
     power=1e-3,
     time=t,
-    SNR_dB=30,
+    SNR_dB=10,
     FWHM=100e-12,
     shift=t0
 )
 input_seq = np.array([5, 0, 5], ndmin=2).T
 squre_wave = build_square_wave(num_samplesperbit=num_samplesperbit,
-                               size=pulse_number)*5
+                               size=pulse_number) * 5
 
 Plotter.plot_pulse_input_and_output([[t, abs(pulse.pulse[:, 0]) ** 2, 'pulso original'],
                                      [t, squre_wave[:, 0] / 5000, 'PRBS ']],
@@ -47,10 +46,14 @@ u0, electro_optical_response = mach_zehnder.modulate(
     voltage_1=squre_wave,
     voltage_2=5)
 
+## modulação do ruído
+u0_noise = np.zeros(u0.shape)
+u0_noise[:, 0] = np.sqrt((np.abs(pulse.noise) ** 2) * squre_wave[:, 0]/5)
+
 Plotter.plot_pulse_input_and_output([[t, np.abs(pulse.pulse[:, 0]) ** 2, "Pulso original"],
                                      [t, np.abs(u0[:, 0]) ** 2, "pulso modulado"],
                                      [t, squre_wave[:, 0] / 5000, 'PRBS '],
-                                    [t, electro_optical_response[:, 0]/5000, 'Resposta eletro óptica']],
+                                     [t, electro_optical_response[:, 0] / 5000, 'Resposta eletro óptica']],
                                     graph_title='Pulso original e modulado',
                                     x_graph='s',
                                     y_graph='w')
@@ -79,6 +82,7 @@ nz_step = [10]
 for nz in nz_step:
     # output
     u1 = Channel.ssprop(u0, dt * 1e12, dz, nz, alpha, betap, gamma)
+    u1_noise = Channel.ssprop(u0_noise, dt * 1e12, dz, nz, alpha, betap, gamma)
 
     title_graph_1 = 'Plot canal: ' + str(nz * dz) + 'Km, alpha = ' \
                     + str(alpha) + '_beta_2_' + str(beta2) + '_gamma_' \
@@ -92,9 +96,17 @@ for nz in nz_step:
 
     nz_DCE = -int(nz * D / D_DCE)
     u2 = Channel.ssprop(u1, dt * 1e12, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
+    u2_noise = Channel.ssprop(u1_noise, dt * 1e12, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
 
     Plotter.plot_pulse_input_and_output([[t, np.abs(u1[:, 0]) ** 2, "Input DCF"],
                                          [t, np.abs(u2[:, 0]) ** 2, "Output DCF"]],
                                         graph_title="saida dcf",
+                                        x_graph='s',
+                                        y_graph="")
+
+    u3 = np.sqrt(np.abs(u2[:, 0]) ** 2 + np.abs(u2_noise[:, 0]) ** 2)
+    Plotter.plot_pulse_input_and_output([[t, np.abs(u3) ** 2, "Pulso final com ruído"],
+                                         [t, np.abs(u2_noise[:, 0]) ** 2, "Ruído"]],
+                                        graph_title="Resultado",
                                         x_graph='s',
                                         y_graph="")
