@@ -46,9 +46,9 @@ u0, electro_optical_response = mach_zehnder.modulate(
     voltage_1=squre_wave,
     voltage_2=5)
 
-## modulação do ruído
+
 u0_noise = np.zeros(u0.shape)
-u0_noise[:, 0] = np.sqrt((np.abs(pulse.noise) ** 2) * squre_wave[:, 0]/5)
+u0_noise[:, 0] = pulse.noise
 
 Plotter.plot_pulse_input_and_output([[t, np.abs(pulse.pulse[:, 0]) ** 2, "Pulso original"],
                                      [t, np.abs(u0[:, 0]) ** 2, "pulso modulado"],
