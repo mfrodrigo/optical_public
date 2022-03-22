@@ -55,8 +55,19 @@ posy = 300
 
 menu_inicial.geometry(f'{largura}x{altura}+{int(posx)}+{int(posy)}')
 
-label = Label(menu_inicial, text="Label 1",
-              font='Arial')
+label = Label(menu_inicial,
+              text="Label 1",
+              font='Arial 20',
+              borderwidth=10,
+              relief="groove",
+              anchor=CENTER)
 label.pack()
+
+variable_name = Listbox(menu_inicial)
+
+
+# to insert items in the list
+variable_name.insert(0, "Abrir")
+variable_name.pack()
 
 menu_inicial.mainloop()
