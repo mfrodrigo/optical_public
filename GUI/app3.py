@@ -19,6 +19,8 @@ photo = PhotoImage(
 root.tk.call('wm', 'iconphoto',
                      root._w, photo)
 
+root['bg'] = 'White'
+
 menubar = Menu(root)
 filemenu = Menu(menubar, tearoff=0)
 filemenu.add_command(label="Novo", command=donothing)
