@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 from scipy import signal
 from channel.channel import Channel
+from output.plotter import Plotter
 from pulse.half_power import return_half_power
 import matplotlib.pyplot as plt
 
@@ -53,52 +54,21 @@ alpha = 0.
 FWHM = 100
 u0 = np.zeros(shape=(len(t), 1), dtype=complex)
 u0[:, 0] = math.sqrt(P0) * 2 ** (-((1 + 1j * C) / 2) * (2 * (t - t0) / FWHM) ** (2 * m))
-
-nz_step = range(40, 401, 40)
+u0[:, 0] = np.sqrt(abs(u0[:, 0])**2 + P0 / 30 * np.random.randn(u0.shape[0]),
+                                   dtype="complex")
+nz_step = [10]
 list_output = []
 list_delta = []
 for nz in nz_step:
     # output
     u1 = Channel.ssprop(u0, dt, dz, nz, alpha, betap, gamma)
 
-    print('###########################################################')
-    list_values = return_half_power(t, u1)
-    print(nz * dz, list_values)
-    list_output.append(list_values[3])
-    list_delta.append(list_values[2])
-    print('###########################################################')
-    fig = plt.figure()
-    plt.plot(t, abs(u0[:, 0]) ** 2, label='Input')
-    plt.plot(t, abs(u1[:, 0]) ** 2, label='Output')
-    plt.title('Gaussian Pulse ')
-    plt.xlabel(r'$(t-\beta_1z)/T_0$')
-    plt.ylabel('|u1(z,t)|^2/P_0')
-    plt.legend()
-    plt.grid(True)
-    fig.savefig('Plot canal: ' + str(nz * dz) + 'Km, alpha = ' + str(alpha) + '_beta_2_'
-                + str(beta2) + '_gamma_' + str(gamma) + '.png', dpi=fig.dpi)
+    title_graph_1 = 'Plot canal: ' + str(nz * dz) + 'Km, alpha = ' \
+                    + str(alpha) + '_beta_2_' + str(beta2) + '_gamma_' \
+                    + str(gamma) + '.png'
 
-fig, ax1 = plt.subplots()
-color = 'red'
-ax1.set_xlabel('distance (km)')
-ax1.set_ylabel('Output Power', color=color)
-ax1.plot(np.array(nz_step) * dz, np.array(list_output) / P0 * 100, color=color)
-ax1.tick_params(axis='y', labelcolor=color)
-
-ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-
-color = 'blue'
-ax2.set_ylabel('Delta', color=color)  # we already handled the x-label with ax1
-ax2.plot(np.array(nz_step) * dz, list_delta, color=color)
-ax2.tick_params(axis='y', labelcolor=color)
-
-fig.tight_layout()  # otherwise the right y-label is slightly clipped
-fig.savefig(
-    'Plot Valores de Saída: ' + 'beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.png',
-    dpi=fig.dpi)
-
-data = pd.DataFrame({'Distância': list(np.array(nz_step)*dz),
-                     'Potência de saída': list_output,
-                     'Largura a meia altura': list_delta})
-data.to_csv('resultados_de_beta_2_' + str(beta2) + '_alpha_' + str(alpha) + '_gamma_' + str(gamma) + '.csv',
-            decimal=",")
+    Plotter.plot_pulse_input_and_output([[t, abs(u0[:, 0]) ** 2, "Input da fibra"],
+                                         [t, abs(u1[:, 0]) ** 2, "Output da fibra"]],
+                                        graph_title=title_graph_1,
+                                        x_graph='s',
+                                        y_graph="")

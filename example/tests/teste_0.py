@@ -1,27 +1,32 @@
-"""
 
-"""
 import math
 import numpy as np
+import pandas as pd
+from scipy import signal
 from channel.channel import Channel
-from pulse.pulse import Pulse
-from pulse.half_power import return_half_power
 from output.plotter import Plotter
-from optical_amplifier.soa import SemiconductorOpticalAmplifier
-from output.tables import Tables
+from pulse.half_power import return_half_power
+import matplotlib.pyplot as plt
 
 # dt
-T = 1000  # (ps) deve ser pelo 4x FWHM
-num_samplesperbit = 2 ** 9  # should be 2^n
-dt = T / num_samplesperbit  # sampling time(ps) # time step (ps)
-t = (np.array(range(1, num_samplesperbit + 1)) - (num_samplesperbit + 1) / 2) * dt
+from pulse.pulse import Pulse
 
+T = 1000e-12  # (ps) deve ser pelo 4x FWHM
+num_samplesperbit = 2000  # should be 2^n
+dt = T / num_samplesperbit  # sampling time(ps) # time step (ps)
+pulse_number = 1
+t, t0 = Pulse.generate_time(
+    pulse_number, num_samplesperbit,
+    dt, T
+)
 pulse = Pulse(
     power=1e-3,
     time=t,
     SNR_dB=30,
-    FWHM=100
+    FWHM=100e-12,
 )
+
+nz_step = [10]
 
 dz = 0.5  # distance stepsize (km)
 
@@ -44,12 +49,9 @@ alpha_DCE = 0.4 / 4.343
 
 nz_step = [10]
 
-lambda0 = 1300  # start wavelength for gain coefficient and ASE spectrum (nm)
-lambda1 = 1650  # end wavelength for gain coefficient and ASE spectrum (nm)
-
 for nz in nz_step:
     # output
-    u1 = Channel.ssprop(pulse.pulse, dt, dz, nz, alpha, betap, gamma)
+    u1 = Channel.ssprop(pulse.pulse, dt*1e12, dz, nz, alpha, betap, gamma)
     pulse.original_pulse = Channel.ssprop(pulse.original_pulse, dt, dz, nz, alpha, betap, gamma)
     title_graph_1 = 'Plot canal: ' + str(nz * dz) + 'Km, alpha = ' \
                     + str(alpha) + '_beta_2_' + str(beta2) + '_gamma_' \
@@ -62,7 +64,7 @@ for nz in nz_step:
                                         y_graph="")
 
     nz_DCE = -int(nz * D / D_DCE)
-    u2 = Channel.ssprop(u1, dt, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
+    u2 = Channel.ssprop(u1, dt*1e12, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
     pulse.original_pulse = Channel.ssprop(pulse.original_pulse, dt, dz, nz_DCE, alpha_DCE, betap_DCE, gamma_DCE)
 
     Plotter.plot_pulse_input_and_output([[t, np.abs(u1[:, 0]) ** 2, "Input DCF"],
@@ -70,4 +72,3 @@ for nz in nz_step:
                                         graph_title="saida dcf",
                                         x_graph='s',
                                         y_graph="")
-
