@@ -30,11 +30,18 @@ class PinPhotodiode:
 
     def calc_shot_noise(self, electric_current):
         return np.sqrt(
-            2*self.q*(electric_current+self.dark_current)*self.bandwidth
+            2 * self.q * (electric_current + self.dark_current) * self.bandwidth
         )
 
     def calc_circuit_noise(self):
-        return np.sqrt(4 * self.kb * self.T * self.noise_figure * self.bandwidth / self.load_resistance)
+        return np.sqrt((4 * self.kb * self.T *
+                        self.noise_figure * self.bandwidth) / self.load_resistance)
 
     def calc_electric_current(self, electric_field):
-        incident_power = np.abs(electric_field) ** 2
+        incident_power = (np.abs(electric_field) ** 2) * self.area
+        electric_current = incident_power * self.responsivity
+        electric_current = electric_current + \
+                           self.calc_shot_noise(electric_current) \
+                           + self.calc_circuit_noise()
+
+        return electric_current
