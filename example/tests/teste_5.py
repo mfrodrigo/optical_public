@@ -24,6 +24,7 @@ circuit.R('load', 'out', circuit.gnd, 470@u_Ω)
 simulator = circuit.simulator(temperature=25, nominal_temperature=25)
 analysis = simulator.ac(start_frequency=1@u_Hz, stop_frequency=100@u_MHz, number_of_points=5,  variation='dec')
 
+print(circuit)
 figure = plt.figure(1, (20, 10))
 plt.title("Bode Diagram of an Operational Amplifier")
 bode_diagram(axes=(plt.subplot(211), plt.subplot(212)),
