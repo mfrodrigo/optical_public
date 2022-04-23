@@ -38,7 +38,7 @@ class PinPhotodiode:
                         self.noise_figure * self.bandwidth) / self.load_resistance)
 
     def calc_electric_current(self, electric_field):
-        incident_power = (np.abs(electric_field) ** 2) * self.area
+        incident_power = (np.abs(electric_field) ** 2)
         electric_current = incident_power * self.responsivity
         electric_current = electric_current + \
                            self.calc_shot_noise(electric_current) \
