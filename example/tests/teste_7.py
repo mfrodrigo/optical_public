@@ -113,3 +113,5 @@ Plotter.plot_pulse_input_and_output([[t, i, "A"]],
                                     graph_title="Resposta do fotodiodo Pin",
                                     x_graph='t',
                                     y_graph="")
+
+np.save('corrente-photodetector.npy', i)
