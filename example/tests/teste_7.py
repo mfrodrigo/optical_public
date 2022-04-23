@@ -99,4 +99,17 @@ for nz in nz_step:
                                         x_graph='s',
                                         y_graph="")
 
+pin = PinPhotodiode(
+    quantum_efficiency=0.8,
+    wavelength=1.550,  # 1530 nm
+    bandwidth=5e9,
+    dark_current=1e-9,  # nA
+    load_resistance=1000,
+    noise_figure_db=3
+)
 
+i = pin.calc_electric_current(u2[:, 0])
+Plotter.plot_pulse_input_and_output([[t, i, "A"]],
+                                    graph_title="Resposta do fotodiodo Pin",
+                                    x_graph='t',
+                                    y_graph="")

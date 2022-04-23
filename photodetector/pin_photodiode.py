@@ -14,16 +14,15 @@ class PinPhotodiode:
     q = 1.602176634e-19  # C
 
     def __init__(self, quantum_efficiency, wavelength,
-                 area, bandwidth, dark_current,
-                 load_resistance, noise_figure):
+                 bandwidth, dark_current,
+                 load_resistance, noise_figure_db):
         self.quantum_efficiency = quantum_efficiency
         self.wavelength = wavelength
         self.responsivity = self.calc_responsivity()
-        self.area = area
         self.bandwidth = bandwidth
         self.dark_current = dark_current
         self.load_resistance = load_resistance
-        self.noise_figure = noise_figure
+        self.noise_figure = 10 ** (noise_figure_db/10)
 
     def calc_responsivity(self):
         return self.quantum_efficiency * self.wavelength / 1.24
