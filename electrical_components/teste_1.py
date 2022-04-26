@@ -1,87 +1,65 @@
-####################################################################################################
+#!/usr/bin/env python3
 
-#r#
-#r# ===================================
-#r#  Simulation using External Sources
-#r# ===================================
-#r#
-#r# This example explains how to plug a voltage source from Python to NgSpice.
-#r#
-
-####################################################################################################
-
-import math
-
+import numpy as np
+from apply_ltspice_filter import apply_ltspice_filter
 import matplotlib.pyplot as plt
 
-####################################################################################################
+##################################################
+##             generate test signal             ##
+##################################################
 
-import PySpice.Logging.Logging as Logging
-logger = Logging.setup_logging()
+# our samples shall be 100 ms wide
+sample_width = 100e-3
+# time step between samples: 0.1 ms
+delta_t = 0.1e-3
+samples = int(sample_width / delta_t)
 
-####################################################################################################
+time = np.linspace(0, sample_width, samples)
 
-from PySpice.Probe.Plot import plot
-from PySpice.Spice.Netlist import Circuit
-from PySpice.Spice.NgSpice.Shared import NgSpiceShared
-from PySpice.Unit import *
+# we want 1 V between 10 ms and 30 ms, and 2.5 V between 40 and 70 ms
+signal_a = 0 + 1 * ((time > 10e-3) * (time < 30e-3)) + 2.5 * ((time > 40e-3) * (time < 70e-3))
 
-####################################################################################################
+##################################################
+##        apply filter - configuration 1        ##
+##################################################
 
-class MyNgSpiceShared(NgSpiceShared):
+# all values in SI units
+configuration_1 = {
+    "C": 100e-6,  # 100 uF
+    "L": 200e-3  # 200 mH
+}
 
-    ##############################################
+dummy, signal_b1 = apply_ltspice_filter(
+    "filter_circuit.asc",
+    time, signal_a,
+    params=configuration_1
+)
 
-    def __init__(self, amplitude, frequency, **kwargs):
+##################################################
+##        apply filter - configuration 2        ##
+##################################################
 
-        super().__init__(**kwargs)
+configuration_2 = {
+    "C": 50e-6,  # 50 uF
+    "L": 300e-3  # 300 mH
+}
 
-        self._amplitude = amplitude
-        self._pulsation = float(frequency.pulsation)
+dummy, signal_b2 = apply_ltspice_filter(
+    "filter_circuit.asc",
+    time, signal_a,
+    params=configuration_2
+)
 
-    ##############################################
+##################################################
+##           plot input vs output(s)            ##
+##################################################
 
-    def get_vsrc_data(self, voltage, time, node, ngspice_id):
-        self._logger.debug('ngspice_id-{} get_vsrc_data @{} node {}'.format(ngspice_id, time, node))
-        voltage[0] = self._amplitude * math.sin(self._pulsation * time)
-        return 0
+plt.plot(time, signal_a, label="signal_a (LTSpice input)")
+plt.plot(time, signal_b1, label="signal_b1 (LTSpice output, C=100uF, L=200mH)")
+plt.plot(time, signal_b2, label="signal_b2 (LTSpice output, C=50uF,  L=300mH)")
+plt.xlabel("time (s)")
+plt.ylabel("voltage (V)")
+plt.ylim((-1, 3.5))
 
-    ##############################################
-
-    def get_isrc_data(self, current, time, node, ngspice_id):
-        self._logger.debug('ngspice_id-{} get_isrc_data @{} node {}'.format(ngspice_id, time, node))
-        current[0] = 1.
-        return 0
-
-####################################################################################################
-
-circuit = Circuit('Voltage Divider')
-
-circuit.V('input', 'input', circuit.gnd, 'dc 0 external')
-circuit.R(1, 'input', 'output', 10@u_kΩ)
-circuit.R(2, 'output', circuit.gnd, 1@u_kΩ)
-
-amplitude = 10@u_V
-frequency = 50@u_Hz
-ngspice_shared = MyNgSpiceShared(amplitude=amplitude, frequency=frequency, send_data=False)
-simulator = circuit.simulator(temperature=25, nominal_temperature=25,
-                              simulator='ngspice-shared', ngspice_shared=ngspice_shared)
-period = float(frequency.period)
-analysis = simulator.transient(step_time=period/200, end_time=period*2)
-
-####################################################################################################
-
-figure1 = plt.figure(1, (20, 10))
-plt.title('Voltage Divider')
-plt.xlabel('Time [s]')
-plt.ylabel('Voltage [V]')
-plt.grid()
-plot(analysis.input)
-plot(analysis.output)
-plt.legend(('input', 'output'), loc=(.05,.1))
-plt.ylim(float(-amplitude*1.1), float(amplitude*1.1))
-
-plt.tight_layout()
+plt.legend()
 plt.show()
-
-#f# save_figure('figure1', 'voltage-divider.png')
