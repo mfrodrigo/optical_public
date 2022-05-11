@@ -9,17 +9,6 @@ t = np.load("/home/rodrigo/Documentos/oitavoperiodo/optical_public/electrical_co
 i = np.load("/home/rodrigo/Documentos/oitavoperiodo/optical_public/electrical_components/corrente-photodetector.npy")
 #
 t = t - t.min()
-# configuration_1 = {
-#     "R": 100
-# }
-
-# our samples shall be 100 ms wide
-# time = np.linspace(0, 1, int(1e4), False)  # 1 second
-# signal_a = 1e-6*np.sin(2*np.pi*100*time)
-
-##################################################
-##        apply filter - configuration 1        ##
-##################################################
 configuration_1 = {
     "R": 100
 }
@@ -37,3 +26,4 @@ Plotter.plot_pulse_input_and_output([[time, signal_a, "A"],
                                     graph_title="Resposta do Amaplificador",
                                     x_graph='t',
                                     y_graph="")
+

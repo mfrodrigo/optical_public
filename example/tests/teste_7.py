@@ -12,7 +12,7 @@ from photodetector.pin_photodiode import PinPhotodiode
 T = 1000e-12
 num_samplesperbit = 2000  # should be 2^n
 dt = T / num_samplesperbit  # sampling time(ps) # time step (ps)
-pulse_number = 40
+pulse_number = 8
 
 t, t0 = Pulse.generate_time(
     pulse_number, num_samplesperbit,
@@ -21,13 +21,13 @@ t, t0 = Pulse.generate_time(
 pulse = Pulse(
     power=1e-3,
     time=t,
-    SNR_dB=40,
+    SNR_dB=5,
     FWHM=100e-12,
     shift=t0
 )
-input_seq = np.array([5, 0, 5], ndmin=2).T
-squre_wave = build_square_wave(num_samplesperbit=num_samplesperbit,
-                               size=pulse_number) * 5
+input_seq = np.array([1, 0, 1, 0, 1, 0, 1, 0], ndmin=2).T
+squre_wave = build_square_wave(input_seq=input_seq,
+                               num_samplesperbit=num_samplesperbit) * 5
 
 Plotter.plot_pulse_input_and_output([[t, abs(pulse.pulse[:, 0]) ** 2, 'pulso original'],
                                      [t, squre_wave[:, 0] / 5000, 'PRBS ']],
@@ -74,7 +74,7 @@ betap_DCE = np.transpose(np.array([0, 0, beta2_DCE]).reshape(1, 3))  # dispersio
 gamma_DCE = 0.03
 alpha_DCE = 0.4 / 4.343
 
-nz_step = [10]
+nz_step = [100]
 
 for nz in nz_step:
     # output
@@ -102,10 +102,10 @@ for nz in nz_step:
 pin = PinPhotodiode(
     quantum_efficiency=0.8,
     wavelength=1.550,  # 1530 nm
-    bandwidth=5e9,
+    bandwidth=10e9,
     dark_current=1e-9,  # nA
     load_resistance=1000,
-    noise_figure_db=3
+    noise_figure_db=5
 )
 
 i = pin.calc_electric_current(u2[:, 0])
