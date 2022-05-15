@@ -1,0 +1,2 @@
+tutorial = https://dcc.ufrj.br/~fabiom/mab225/14gui.pdf
+menu = https://www.tutorialspoint.com/python/tk_menu.htm
