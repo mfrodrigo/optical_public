@@ -34,8 +34,8 @@ class Pulse:
         self.pulse = None
         if type_pulse == "Gaussian":
             self._gaussian_pulse()
-        # self.original_pulse = self.pulse.copy()
-        self.noise = self._add_noise()
+        self.original_pulse = self.pulse.copy()
+        self._add_noise()
 
     def _gaussian_pulse(self):
         """
@@ -50,8 +50,9 @@ class Pulse:
         """
         Adds noise according to SNR.
         """
-        return np.sqrt(self.P0 / self.SNR * np.random.randn(self.pulse.shape[0]),
-                       dtype="complex").T
+        self.pulse[:, 0] = np.sqrt(abs(self.pulse[:, 0]) ** 2 + self.P0
+                                   / self.SNR * np.random.randn(self.pulse.shape[0]),
+                                   dtype="complex")
 
     @staticmethod
     def generate_time(pulse_number: int, num_samplesperbit: int,
